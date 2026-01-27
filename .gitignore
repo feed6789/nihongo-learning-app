@@ -18,9 +18,13 @@ Thumbs.db
 # Android
 android/.gradle
 android/local.properties
+android/key.properties
+*.jks
 
-# iOS
+# iOS / macOS
 ios/Pods/
 ios/.symlinks/
 ios/Flutter/Flutter.framework
 ios/Flutter/Flutter.podspec
+macos/Pods/
+macos/Flutter/ephemeral/
