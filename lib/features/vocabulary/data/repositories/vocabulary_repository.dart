@@ -2,14 +2,16 @@
 
 import '../datasources/vocabulary_remote_datasource.dart';
 import '../models/vocabulary_model.dart';
+import '../models/vocabulary.dart';
 
 class VocabularyRepository {
   final VocabularyRemoteDatasource datasource;
 
   VocabularyRepository(this.datasource);
 
-  Future<List<VocabularyModel>> getAll() {
-    return datasource.getAll();
+  Future<List<Vocabulary>> getAll() async {
+    final models = await datasource.getAll();
+    return models.map((e) => e.toEntity()).toList();
   }
 
   Future<void> add(VocabularyModel vocab) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nihongo_app/features/vocabulary/data/models/vocabulary.dart';
 
 import '../../data/models/vocabulary_model.dart';
 import '../../data/repositories/vocabulary_repository.dart';
@@ -7,7 +8,7 @@ import '../../data/models/category_model.dart';
 import '../../data/datasources/category_remote_datasource.dart';
 
 class VocabularyFormPage extends StatefulWidget {
-  final VocabularyModel? vocab; // null = create, có = edit
+  final Vocabulary? vocab; // null = create, có = edit
 
   const VocabularyFormPage({super.key, this.vocab});
 
@@ -40,17 +41,6 @@ class _VocabularyFormPageState extends State<VocabularyFormPage> {
       meaningVnCtrl.text = widget.vocab!.meaningVn;
     }
 
-    CategoryRemoteDatasource().getVocabularyCategories().then((value) {
-      setState(() {
-        categories = value;
-
-        if (widget.vocab != null) {
-          selectedCategoryId = widget.vocab!.categoryId;
-        } else if (categories.isNotEmpty) {
-          selectedCategoryId = categories.first.id;
-        }
-      });
-    });
     CategoryRemoteDatasource().getVocabularyCategories().then((value) {
       setState(() {
         categories = value;

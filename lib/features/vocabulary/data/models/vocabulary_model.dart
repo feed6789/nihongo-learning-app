@@ -1,4 +1,5 @@
 // lib/features/vocabulary/data/models/vocabulary_model.dart
+import 'vocabulary.dart';
 
 class VocabularyModel {
   final int id;
@@ -44,5 +45,17 @@ class VocabularyModel {
       'meaning_vn': meaningVn,
       'meaning_en': meaningEn,
     };
+  }
+
+  Vocabulary toEntity() {
+    return Vocabulary(
+      id: id,
+      categoryId: categoryId,
+      kanji: kanji,
+      hiragana: hiragana,
+      romaji: romaji,
+      meaningEn: meaningEn,
+      meaningVn: meaningVn,
+    );
   }
 }
