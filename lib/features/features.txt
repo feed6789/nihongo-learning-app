@@ -1,0 +1,7 @@
+1️⃣ Mình chỉ bạn Delete (long press)
+2️⃣ Gắn Category dropdown cho vocabulary
+3️⃣ Refactor lại list cho search
+
+2️⃣ Thêm search + filter vocabulary
+3️⃣ Chuẩn bị copy feature này sang Grammar / Kanji
+
