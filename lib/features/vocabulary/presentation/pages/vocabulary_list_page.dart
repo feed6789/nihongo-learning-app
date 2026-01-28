@@ -30,7 +30,7 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
 
   Future<void> loadVocabulary() async {
     final items = await repository.getAll();
-    allList = items;
+    allList = items.cast<Vocabulary>();
     applyFilter();
   }
 
@@ -97,7 +97,7 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
           );
 
           if (result == true) {
-            setState(() {});
+            loadVocabulary();
           }
         },
         child: const Icon(Icons.add),
