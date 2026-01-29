@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nihongo_app/features/vocabulary/data/datasources/category_remote_datasource.dart';
 import 'package:nihongo_app/features/vocabulary/data/models/category_model.dart';
+import 'package:nihongo_app/features/vocabulary/presentation/pages/vocabulary_quiz_page.dart';
 
 import '../../data/datasources/vocabulary_remote_datasource.dart';
 import '../../data/repositories/vocabulary_repository.dart';
@@ -52,7 +53,34 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Vocabulary')),
+      appBar: AppBar(
+        title: const Text('Vocabulary'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.quiz),
+            onPressed: () {
+              // chặn khi ít vocab
+              if (allList.length < 4) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Need at least 4 vocabularies')),
+                );
+                return;
+              }
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (_) => VocabularyQuizPage(
+                        vocabList: allList.where((v) => !v.isLearned).toList(),
+                      ),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+
       body: Column(
         children: [
           Padding(

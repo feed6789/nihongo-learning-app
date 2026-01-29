@@ -11,5 +11,16 @@
 4️⃣ 🧠 SRS (ôn tập thông minh)
 
 2️⃣ 📊 Learned / Progress
+    1️⃣ Progress bar (JLPT style)
+    2️⃣ Filter Learned / Unlearned
+    3️⃣ Sort A–Z / Favorite first
+    4️⃣ Quiz từ vocab đã learned
+
 3️⃣ 🔁 Random Quiz / Test
+    1️⃣ Quiz theo Category / JLPT
+    2️⃣ Ghi điểm + streak
+    3️⃣ Sai thì auto set learned = false
+    4️⃣ Flashcard (lật thẻ)
+    5️⃣ Grammar / Kanji quiz dùng lại y chang
+    
 4️⃣ 🧠 SRS – ôn tập thông minh
