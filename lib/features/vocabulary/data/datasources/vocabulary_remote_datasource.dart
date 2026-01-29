@@ -23,4 +23,11 @@ class VocabularyRemoteDatasource {
   Future<void> delete(int id) async {
     await _client.from('vocabulary').delete().eq('id', id);
   }
+
+  Future<void> updateFavorite(int id, bool value) async {
+    await _client
+        .from('vocabulary')
+        .update({'is_favorite': value})
+        .eq('id', id);
+  }
 }

@@ -25,4 +25,8 @@ class VocabularyRepository {
   Future<void> delete(int id) {
     return datasource.delete(id);
   }
+
+  Future<void> toggleFavorite(int id, bool value) async {
+    await datasource.updateFavorite(id, value);
+  }
 }
