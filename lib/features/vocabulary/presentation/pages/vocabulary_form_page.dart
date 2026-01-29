@@ -67,6 +67,7 @@ class _VocabularyFormPageState extends State<VocabularyFormPage> {
       meaningEn: meaningEnCtrl.text,
       meaningVn: meaningVnCtrl.text,
       isFavorite: false,
+      isLearned: false,
     );
 
     if (widget.vocab == null) {

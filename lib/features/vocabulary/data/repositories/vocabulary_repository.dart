@@ -29,4 +29,8 @@ class VocabularyRepository {
   Future<void> toggleFavorite(int id, bool value) async {
     await datasource.updateFavorite(id, value);
   }
+
+  Future<void> toggleLearned(int id, bool value) async {
+    await datasource.updateLearned(id, value);
+  }
 }

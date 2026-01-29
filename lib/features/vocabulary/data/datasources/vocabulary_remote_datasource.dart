@@ -30,4 +30,8 @@ class VocabularyRemoteDatasource {
         .update({'is_favorite': value})
         .eq('id', id);
   }
+
+  Future<void> updateLearned(int id, bool value) async {
+    await _client.from('vocabulary').update({'is_learned': value}).eq('id', id);
+  }
 }

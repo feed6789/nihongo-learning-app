@@ -7,6 +7,7 @@ class Vocabulary {
   final String meaningVn;
   final String meaningEn;
   final bool isFavorite;
+  final bool isLearned;
 
   Vocabulary({
     required this.id,
@@ -17,6 +18,7 @@ class Vocabulary {
     required this.meaningVn,
     required this.meaningEn,
     required this.isFavorite,
+    required this.isLearned,
   });
 
   factory Vocabulary.fromMap(Map<String, dynamic> map) {
@@ -29,6 +31,7 @@ class Vocabulary {
       meaningVn: map['meaning_vn'] ?? '',
       meaningEn: map['meaning_en'] ?? '',
       isFavorite: map['is_favorite'] ?? false,
+      isLearned: map['is_learned'] ?? false,
     );
   }
 }

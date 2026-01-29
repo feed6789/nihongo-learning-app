@@ -21,6 +21,7 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
   List<Vocabulary> filteredList = [];
   List<CategoryModel> categories = [];
 
+  bool isLoading = true;
   int? selectedCategoryId;
   String searchText = '';
 
@@ -37,9 +38,15 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
   }
 
   Future<void> loadVocabulary() async {
-    final items = await repository.getAll();
-    allList = items.cast<Vocabulary>();
-    applyFilter();
+    setState(() => isLoading = true);
+
+    final data = await repository.getAll();
+
+    setState(() {
+      allList = data;
+      applyFilter();
+      isLoading = false;
+    });
   }
 
   @override
@@ -83,13 +90,30 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
 
           Expanded(
             child:
-                filteredList.isEmpty
+                isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : filteredList.isEmpty
                     ? const Center(child: Text('No vocabulary found'))
                     : ListView.builder(
                       itemCount: filteredList.length,
                       itemBuilder: (context, index) {
                         final v = filteredList[index];
                         return ListTile(
+                          leading: IconButton(
+                            icon: Icon(
+                              v.isLearned
+                                  ? Icons.check_circle
+                                  : Icons.radio_button_unchecked,
+                              color: v.isLearned ? Colors.green : Colors.grey,
+                            ),
+                            onPressed: () async {
+                              await repository.toggleLearned(
+                                v.id,
+                                !v.isLearned,
+                              );
+                              loadVocabulary();
+                            },
+                          ),
                           title: Text(
                             v.kanji.isNotEmpty ? v.kanji : v.hiragana,
                           ),
@@ -107,6 +131,7 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
                               loadVocabulary();
                             },
                           ),
+
                           onTap: () async {
                             final result = await Navigator.push(
                               context,

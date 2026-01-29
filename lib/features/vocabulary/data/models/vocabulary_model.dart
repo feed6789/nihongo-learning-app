@@ -11,6 +11,7 @@ class VocabularyModel {
   final String meaningVn;
   final String meaningEn;
   final bool isFavorite;
+  final bool isLearned;
 
   VocabularyModel({
     required this.id,
@@ -22,6 +23,7 @@ class VocabularyModel {
     required this.meaningVn,
     required this.meaningEn,
     required this.isFavorite,
+    required this.isLearned,
   });
 
   factory VocabularyModel.fromJson(Map<String, dynamic> json) {
@@ -35,6 +37,7 @@ class VocabularyModel {
       meaningVn: json['meaning_vn'] ?? '',
       meaningEn: json['meaning_en'] ?? '',
       isFavorite: json['is_favorite'] ?? false,
+      isLearned: json['is_learned'] ?? false,
     );
   }
 
@@ -48,6 +51,7 @@ class VocabularyModel {
       'meaning_vn': meaningVn,
       'meaning_en': meaningEn,
       'is_favorite': isFavorite,
+      'is_learned': isLearned,
     };
   }
 
@@ -61,6 +65,7 @@ class VocabularyModel {
       meaningEn: meaningEn,
       meaningVn: meaningVn,
       isFavorite: isFavorite,
+      isLearned: isLearned,
     );
   }
 }
