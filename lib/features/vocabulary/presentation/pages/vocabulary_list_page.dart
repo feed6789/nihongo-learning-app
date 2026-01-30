@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:nihongo_app/features/vocabulary/data/datasources/category_remote_datasource.dart';
 import 'package:nihongo_app/features/vocabulary/data/models/category_model.dart';
 import 'package:nihongo_app/features/vocabulary/presentation/pages/vocabulary_quiz_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/datasources/vocabulary_remote_datasource.dart';
 import '../../data/repositories/vocabulary_repository.dart';
-import '../../data/models/vocabulary_model.dart';
+// import '../../data/models/vocabulary_model.dart';
 import 'vocabulary_form_page.dart';
 import '../../data/models/vocabulary.dart';
 
@@ -76,6 +77,12 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
                       ),
                 ),
               );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await Supabase.instance.client.auth.signOut();
             },
           ),
         ],

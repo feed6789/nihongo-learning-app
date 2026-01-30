@@ -24,3 +24,15 @@
     5️⃣ Grammar / Kanji quiz dùng lại y chang
     
 4️⃣ 🧠 SRS – ôn tập thông minh
+
+
+Auth
+    1️⃣ Login email + Google (Flutter + Supabase)
+        1️⃣ Ẩn / hiện CRUD theo role (admin / learner)
+        2️⃣ Gắn learned + favorite theo user (cực quan trọng)
+        3️⃣ Bật RLS an toàn
+        4️⃣ Sync progress đa thiết bị
+        4️⃣ Multi-device sync
+    2️⃣ Gắn progress vào user (refactor learned/favorite)
+    3️⃣ Admin / Learner UI khác nhau
+    4️⃣ Offline-first (local cache)
