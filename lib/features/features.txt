@@ -36,3 +36,37 @@ Auth
     2️⃣ Gắn progress vào user (refactor learned/favorite)
     3️⃣ Admin / Learner UI khác nhau
     4️⃣ Offline-first (local cache)
+
+local
+1️⃣ Tách learned/favorite: guest vs user
+2️⃣ Local cache cho guest (Hive / SharedPreferences)
+        🔹 Cách A – SharedPreferences (KHUYÊN DÙNG BÂY GIỜ)
+        ✔ Dễ
+        ✔ Nhẹ
+        ✔ Phù hợp learned / favorite / progress
+        ❌ Không phù hợp data lớn
+
+        👉 Dùng cho guest mode (chuẩn)
+
+        🔹 Cách B – SQLite / Drift / Floor
+
+        ✔ Data lớn
+        ✔ Query mạnh
+        ❌ Code nhiều
+        ❌ Dễ ngợp lúc đầu
+
+        👉 Dùng khi:
+
+        Offline full vocab
+
+        Từ điển lớn
+
+        🔹 Cách C – Hive / Isar
+
+        ✔ Nhanh
+        ✔ NoSQL
+        ✔ App lớn
+
+        👉 Dùng sau này
+3️⃣ Sync local → cloud khi login
+4️⃣ RLS theo user

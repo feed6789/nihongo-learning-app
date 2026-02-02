@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:nihongo_app/features/auth/presentation/login_page.dart';
 import 'package:nihongo_app/features/vocabulary/data/datasources/category_remote_datasource.dart';
 import 'package:nihongo_app/features/vocabulary/data/models/category_model.dart';
 import 'package:nihongo_app/features/vocabulary/presentation/pages/vocabulary_quiz_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:nihongo_app/core/ultis/auth_helper.dart';
 
 import '../../data/datasources/vocabulary_remote_datasource.dart';
 import '../../data/repositories/vocabulary_repository.dart';
@@ -39,6 +41,23 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
     loadVocabulary();
   }
 
+  void showLoginHint() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Login to sync your progress'),
+        action: SnackBarAction(
+          label: 'Login',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LoginPage()),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
   Future<void> loadVocabulary() async {
     setState(() => isLoading = true);
 
@@ -57,6 +76,34 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
       appBar: AppBar(
         title: const Text('Vocabulary'),
         actions: [
+          Builder(
+            builder: (context) {
+              final user = Supabase.instance.client.auth.currentUser;
+
+              if (user == null) {
+                return IconButton(
+                  icon: const Icon(Icons.login),
+                  tooltip: 'Login to sync',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginPage()),
+                    );
+                  },
+                );
+              } else {
+                return IconButton(
+                  icon: const Icon(Icons.logout),
+                  onPressed: () async {
+                    await Supabase.instance.client.auth.signOut();
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(const SnackBar(content: Text('Logged out')));
+                  },
+                );
+              }
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.quiz),
             onPressed: () {
@@ -142,6 +189,11 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
                               color: v.isLearned ? Colors.green : Colors.grey,
                             ),
                             onPressed: () async {
+                              if (AuthHelper.isGuest) {
+                                showLoginHint();
+                                return;
+                              }
+
                               await repository.toggleLearned(
                                 v.id,
                                 !v.isLearned,

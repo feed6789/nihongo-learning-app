@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nihongo_app/features/vocabulary/presentation/pages/vocabulary_list_page.dart';
 import 'core/services/supabase_service.dart';
 import 'features/auth/presentation/auth_gate.dart';
 
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const AuthGate(), // 👈 CHỈ ĐỔI DÒNG NÀY
+      home: const VocabularyListPage(),
     );
   }
 }
