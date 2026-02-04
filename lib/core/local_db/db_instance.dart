@@ -1,3 +1,3 @@
-// import 'app_database.dart';
+import 'app_database.dart';
 
-// final appDatabase = AppDatabase();
+final appDatabase = AppDatabase();

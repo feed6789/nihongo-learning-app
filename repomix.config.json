@@ -1,0 +1,22 @@
+{
+  "output": {
+    "filePath": "all-flutter-code.txt",
+    "style": "markdown" 
+  },
+  "include": ["lib/**/*", "pubspec.yaml", "analysis_options.yaml"],
+  "ignore": {
+    "customPatterns": [
+      "**/build/**",
+      "**/.dart_tool/**",
+      "**/.git/**",
+      "**/android/**",
+      "**/ios/**",
+      "**/web/**",
+      "**/linux/**",
+      "**/macos/**",
+      "**/windows/**",
+      "**/*.png",
+      "**/*.jpg"
+    ]
+  }
+}

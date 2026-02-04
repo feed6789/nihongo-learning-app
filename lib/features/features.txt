@@ -70,3 +70,6 @@ local
         👉 Dùng sau này
 3️⃣ Sync local → cloud khi login
 4️⃣ RLS theo user
+
+
+Import excel dữ liệu
