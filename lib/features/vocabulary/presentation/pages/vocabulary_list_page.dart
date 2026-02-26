@@ -50,13 +50,30 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
 
   Future<void> _loadVocabulary() async {
     setState(() => isLoading = true);
-    final data = await repository.getAll();
-    if (mounted) {
-      setState(() {
-        allList = data;
-        _applyFilter();
-        isLoading = false;
-      });
+    
+    try {
+      // Gọi repository
+      final data = await repository.getAll();
+      
+      if (mounted) {
+        setState(() {
+          allList = data;
+          _applyFilter();
+        });
+      }
+    } catch (e) {
+      // Nếu có lỗi, in ra log và thông báo cho user biết thay vì treo app
+      print("Lỗi tải dữ liệu: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi tải dữ liệu: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      // QUAN TRỌNG: Luôn tắt loading dù thành công hay thất bại
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 
