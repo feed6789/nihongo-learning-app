@@ -2,6 +2,7 @@
 
 import '../datasources/vocabulary_remote_datasource.dart';
 import '../datasources/vocabulary_local_datasource.dart';
+import 'package:flutter/foundation.dart';
 import '../models/vocabulary_model.dart';
 import '../models/vocabulary.dart';
 import '../../../../core/ultis/auth_helper.dart';
@@ -14,22 +15,31 @@ class VocabularyRepository {
 
   Future<List<Vocabulary>> getAll() async {
     try {
-      // 1. Thử lấy data từ Server (đã bao gồm progress của User nếu có)
+      // 1. Lấy data từ Server (Supabase)
       final remoteData = await remoteDatasource.getAll();
 
-      // 2. Nếu User đã login, cache lại vào Local DB để lần sau mở app nhanh hơn
-      // Lưu ý: Local DB hiện tại là một bảng phẳng (flat table).
-      // Việc lưu đè này giúp Local DB phản ánh đúng trạng thái của User hiện tại.
-      if (!AuthHelper.isGuest) {
-        await localDatasource.cacheData(remoteData);
+      // 2. Cache vào Local DB (CHỈ LÀM KHI KHÔNG PHẢI WEB)
+      // Thêm điều kiện !kIsWeb để chặn lỗi sql.js trên trình duyệt
+      if (!kIsWeb && !AuthHelper.isGuest) {
+        try {
+          await localDatasource.cacheData(remoteData);
+        } catch (e) {
+          print("Lỗi cache local (không ảnh hưởng hiển thị): $e");
+        }
       }
 
+      // 3. Trả về data
       return _mapToEntity(remoteData);
     } catch (e) {
-      // 3. Nếu lỗi mạng -> Lấy từ Local DB
-      print('Offline mode or Error: $e');
-      final localData = await localDatasource.getAll();
-      return _mapToEntity(localData);
+      /// 4. Nếu lỗi mạng/offline -> Lấy từ Local DB (Chỉ áp dụng cho Mobile)
+      if (!kIsWeb) {
+        print('Offline mode: $e');
+        final localData = await localDatasource.getAll();
+        return _mapToEntity(localData);
+      } else {
+        // Nếu là Web mà lỗi mạng thì chịu, ném lỗi ra để UI hiện thông báo
+        rethrow;
+      }
     }
   }
 
