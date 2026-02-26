@@ -27,6 +27,24 @@ class VocabularyModel {
   });
 
   factory VocabularyModel.fromJson(Map<String, dynamic> json) {
+    // Logic mới: Kiểm tra xem có dữ liệu progress (kết quả của phép Join) không
+    // Supabase trả về relation dưới dạng List. Ví dụ: user_vocabulary_progress: [{...}]
+    bool favorite = false;
+    bool learned = false;
+
+    if (json['user_vocabulary_progress'] != null &&
+        (json['user_vocabulary_progress'] as List).isNotEmpty) {
+      final progress = (json['user_vocabulary_progress'] as List).first;
+      // Map field từ DB schema (favorite, learned) sang Dart model (isFavorite, isLearned)
+      favorite = progress['favorite'] ?? false;
+      learned = progress['learned'] ?? false;
+    }
+    // Fallback: Nếu không có bảng phụ, giữ logic cũ (cho trường hợp admin view hoặc bảng vocabulary cũ)
+    else {
+      favorite = json['is_favorite'] ?? false;
+      learned = json['is_learned'] ?? false;
+    }
+
     return VocabularyModel(
       id: json['id'],
       categoryId: json['category_id'],
@@ -36,11 +54,12 @@ class VocabularyModel {
       wordType: json['word_type'] ?? '',
       meaningVn: json['meaning_vn'] ?? '',
       meaningEn: json['meaning_en'] ?? '',
-      isFavorite: json['is_favorite'] ?? false,
-      isLearned: json['is_learned'] ?? false,
+      isFavorite: favorite,
+      isLearned: learned,
     );
   }
 
+  // toJson này chủ yếu dùng khi insert từ vựng mới (Admin), không dùng để update progress
   Map<String, dynamic> toJson() {
     return {
       'category_id': categoryId,
@@ -50,6 +69,7 @@ class VocabularyModel {
       'word_type': wordType,
       'meaning_vn': meaningVn,
       'meaning_en': meaningEn,
+      // Lưu ý: Khi insert vocab mới, các field này có thể không cần thiết nếu DB đã tách bảng
       'is_favorite': isFavorite,
       'is_learned': isLearned,
     };
