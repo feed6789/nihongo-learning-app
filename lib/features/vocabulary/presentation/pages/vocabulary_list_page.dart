@@ -1,16 +1,16 @@
+// lib/features/vocabulary/presentation/pages/vocabulary_list_page.dart
+
 import 'package:flutter/material.dart';
+import 'package:nihongo_app/core/ultis/auth_helper.dart';
 import 'package:nihongo_app/features/auth/presentation/login_page.dart';
 import 'package:nihongo_app/features/vocabulary/data/datasources/category_remote_datasource.dart';
+import 'package:nihongo_app/features/vocabulary/data/datasources/vocabulary_remote_datasource.dart';
 import 'package:nihongo_app/features/vocabulary/data/models/category_model.dart';
+import 'package:nihongo_app/features/vocabulary/data/models/vocabulary.dart';
+import 'package:nihongo_app/features/vocabulary/data/repositories/vocabulary_repository.dart';
+import 'package:nihongo_app/features/vocabulary/presentation/pages/vocabulary_form_page.dart';
 import 'package:nihongo_app/features/vocabulary/presentation/pages/vocabulary_quiz_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:nihongo_app/core/ultis/auth_helper.dart';
-
-import '../../data/datasources/vocabulary_remote_datasource.dart';
-import '../../data/repositories/vocabulary_repository.dart';
-// import '../../data/models/vocabulary_model.dart';
-import 'vocabulary_form_page.dart';
-import '../../data/models/vocabulary.dart';
 
 class VocabularyListPage extends StatefulWidget {
   const VocabularyListPage({super.key});
@@ -21,285 +21,362 @@ class VocabularyListPage extends StatefulWidget {
 
 class _VocabularyListPageState extends State<VocabularyListPage> {
   late final VocabularyRepository repository;
+  
+  // Data States
   List<Vocabulary> allList = [];
   List<Vocabulary> filteredList = [];
   List<CategoryModel> categories = [];
-
+  
+  // UI States
   bool isLoading = true;
   int? selectedCategoryId;
   String searchText = '';
+  String filterType = 'all'; // 'all', 'unlearned', 'learned', 'favorite'
 
   @override
   void initState() {
     super.initState();
-    CategoryRemoteDatasource().getVocabularyCategories().then((value) {
-      setState(() {
-        categories = value;
-      });
-    });
     repository = VocabularyRepository(VocabularyRemoteDatasource());
-    loadVocabulary();
+    _loadCategories();
+    _loadVocabulary();
   }
 
-  void showLoginHint() {
+  Future<void> _loadCategories() async {
+    final result = await CategoryRemoteDatasource().getVocabularyCategories();
+    setState(() {
+      categories = result;
+    });
+  }
+
+  Future<void> _loadVocabulary() async {
+    setState(() => isLoading = true);
+    final data = await repository.getAll();
+    if (mounted) {
+      setState(() {
+        allList = data;
+        _applyFilter();
+        isLoading = false;
+      });
+    }
+  }
+
+  // Tính toán tiến độ học tập
+  double get _progress {
+    if (allList.isEmpty) return 0.0;
+    final learnedCount = allList.where((v) => v.isLearned).length;
+    return learnedCount / allList.length;
+  }
+
+  void _showLoginHint() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Login to sync your progress'),
+        content: const Text('Vui lòng đăng nhập để lưu tiến độ học!'),
         action: SnackBarAction(
-          label: 'Login',
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const LoginPage()),
-            );
-          },
+          label: 'Đăng nhập',
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const LoginPage()),
+          ),
         ),
       ),
     );
   }
 
-  Future<void> loadVocabulary() async {
-    setState(() => isLoading = true);
-
-    final data = await repository.getAll();
-
-    setState(() {
-      allList = data;
-      applyFilter();
-      isLoading = false;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    final user = AuthHelper.currentUser;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Vocabulary'),
+        title: const Text('Từ vựng JLPT'),
+        centerTitle: true,
         actions: [
-          Builder(
-            builder: (context) {
-              final user = Supabase.instance.client.auth.currentUser;
-
-              if (user == null) {
-                return IconButton(
-                  icon: const Icon(Icons.login),
-                  tooltip: 'Login to sync',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginPage()),
-                    );
-                  },
-                );
-              } else {
-                return IconButton(
-                  icon: const Icon(Icons.logout),
-                  onPressed: () async {
-                    await Supabase.instance.client.auth.signOut();
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(const SnackBar(content: Text('Logged out')));
-                  },
-                );
-              }
-            },
-          ),
           IconButton(
             icon: const Icon(Icons.quiz),
+            tooltip: 'Ôn tập',
             onPressed: () {
-              // chặn khi ít vocab
-              if (allList.length < 4) {
+              // Logic Quiz: Chỉ lấy những từ chưa thuộc hoặc yêu thích để ôn
+              final quizList = allList.where((v) => !v.isLearned || v.isFavorite).toList();
+              
+              if (quizList.length < 4) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Need at least 4 vocabularies')),
+                  const SnackBar(content: Text('Cần ít nhất 4 từ để bắt đầu Quiz!')),
                 );
                 return;
               }
 
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder:
-                      (_) => VocabularyQuizPage(
-                        vocabList: allList.where((v) => !v.isLearned).toList(),
-                      ),
-                ),
+                MaterialPageRoute(builder: (_) => VocabularyQuizPage(vocabList: quizList)),
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await Supabase.instance.client.auth.signOut();
-            },
-          ),
+          if (user == null)
+            IconButton(
+              icon: const Icon(Icons.login),
+              onPressed: () => Navigator.push(
+                  context, MaterialPageRoute(builder: (_) => const LoginPage())),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () async {
+                await Supabase.instance.client.auth.signOut();
+                if(mounted) _loadVocabulary(); // Reload lại data dạng Guest
+              },
+            ),
         ],
       ),
-
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: TextField(
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search),
-                hintText: 'Search vocabulary...',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (value) {
-                searchText = value;
-                applyFilter();
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: DropdownButtonFormField<int>(
-              value: selectedCategoryId,
-              hint: const Text('Filter by category'),
-              items:
-                  categories
-                      .map(
-                        (c) =>
-                            DropdownMenuItem(value: c.id, child: Text(c.title)),
-                      )
-                      .toList(),
-              onChanged: (value) {
-                selectedCategoryId = value;
-                applyFilter();
-              },
+          // 1. THANH TIẾN ĐỘ & THỐNG KÊ
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Tiến độ: ${( _progress * 100).toStringAsFixed(1)}%',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text('${allList.where((v) => v.isLearned).length}/${allList.length} từ'),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                LinearProgressIndicator(
+                  value: _progress,
+                  minHeight: 8,
+                  borderRadius: BorderRadius.circular(4),
+                  backgroundColor: Colors.white,
+                  color: Colors.green,
+                ),
+              ],
             ),
           ),
 
-          Expanded(
-            child:
-                isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : filteredList.isEmpty
-                    ? const Center(child: Text('No vocabulary found'))
-                    : ListView.builder(
-                      itemCount: filteredList.length,
-                      itemBuilder: (context, index) {
-                        final v = filteredList[index];
-                        return ListTile(
-                          leading: IconButton(
-                            icon: Icon(
-                              v.isLearned
-                                  ? Icons.check_circle
-                                  : Icons.radio_button_unchecked,
-                              color: v.isLearned ? Colors.green : Colors.grey,
-                            ),
-                            onPressed: () async {
-                              if (AuthHelper.isGuest) {
-                                showLoginHint();
-                                return;
-                              }
-
-                              await repository.toggleLearned(
-                                v.id,
-                                !v.isLearned,
-                              );
-                              loadVocabulary();
-                            },
-                          ),
-                          title: Text(
-                            v.kanji.isNotEmpty ? v.kanji : v.hiragana,
-                          ),
-                          subtitle: Text('${v.meaningEn} / ${v.meaningVn}'),
-                          trailing: IconButton(
-                            icon: Icon(
-                              v.isFavorite ? Icons.star : Icons.star_border,
-                              color: v.isFavorite ? Colors.amber : null,
-                            ),
-                            onPressed: () async {
-                              await repository.toggleFavorite(
-                                v.id,
-                                !v.isFavorite,
-                              );
-                              loadVocabulary();
-                            },
-                          ),
-
-                          onTap: () async {
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => VocabularyFormPage(vocab: v),
-                              ),
-                            );
-                            if (result == true) {
-                              loadVocabulary();
-                            }
-                          },
-                          onLongPress: () async {
-                            final ok = await showDialog<bool>(
-                              context: context,
-                              builder:
-                                  (_) => AlertDialog(
-                                    title: const Text('Delete'),
-                                    content: const Text(
-                                      'Delete this vocabulary?',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.pop(context, false),
-                                        child: const Text('Cancel'),
-                                      ),
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.pop(context, true),
-                                        child: const Text('Delete'),
-                                      ),
-                                    ],
-                                  ),
-                            );
-                            if (ok == true) {
-                              await repository.delete(v.id);
-                              loadVocabulary();
-                            }
-                          },
-                        );
+          // 2. BỘ LỌC & TÌM KIẾM
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        decoration: const InputDecoration(
+                          prefixIcon: Icon(Icons.search),
+                          hintText: 'Tìm Kanji, Hiragana, Nghĩa...',
+                          contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (value) {
+                          searchText = value;
+                          _applyFilter();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Dropdown Category rút gọn
+                    DropdownButton<int>(
+                      value: selectedCategoryId,
+                      hint: const Text('Chủ đề'),
+                      underline: Container(), // Bỏ gạch chân mặc định
+                      icon: const Icon(Icons.filter_list),
+                      items: [
+                        const DropdownMenuItem(value: null, child: Text('Tất cả chủ đề')),
+                        ...categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.title))),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          selectedCategoryId = value;
+                          _applyFilter();
+                        });
                       },
                     ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                // Filter Chips (Tab lọc trạng thái)
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildFilterChip('all', 'Tất cả'),
+                      _buildFilterChip('unlearned', 'Chưa học'),
+                      _buildFilterChip('learned', 'Đã thuộc'),
+                      _buildFilterChip('favorite', 'Đánh dấu ⭐'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 3. DANH SÁCH TỪ VỰNG
+          Expanded(
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : filteredList.isEmpty
+                    ? const Center(child: Text('Không tìm thấy từ vựng nào.', style: TextStyle(color: Colors.grey)))
+                    : ListView.separated(
+                        padding: const EdgeInsets.only(bottom: 80),
+                        itemCount: filteredList.length,
+                        separatorBuilder: (c, i) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final v = filteredList[index];
+                          return _buildVocabularyItem(v);
+                        },
+                      ),
           ),
         ],
       ),
-
+      
+      // Nút thêm từ (Chỉ hiện nếu Admin hoặc User thích thêm private note - tùy logic sau này)
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
+          if (AuthHelper.isGuest) {
+            _showLoginHint();
+            return;
+          }
           final result = await Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const VocabularyFormPage()),
           );
-
-          if (result == true) {
-            loadVocabulary();
-          }
+          if (result == true) _loadVocabulary();
         },
         child: const Icon(Icons.add),
       ),
     );
   }
 
-  void applyFilter() {
-    filteredList =
-        allList.where((v) {
-          final matchCategory =
-              selectedCategoryId == null || v.categoryId == selectedCategoryId;
+  // Widget con: Filter Chip
+  Widget _buildFilterChip(String type, String label) {
+    final isSelected = filterType == type;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: isSelected,
+        onSelected: (selected) {
+          if (selected) {
+            setState(() {
+              filterType = type;
+              _applyFilter();
+            });
+          }
+        },
+      ),
+    );
+  }
 
-          final text = searchText.toLowerCase();
+  // Widget con: Dòng từ vựng
+  Widget _buildVocabularyItem(Vocabulary v) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      tileColor: v.isLearned ? Colors.green.withValues(alpha: 0.1) : null, // Highlight nhẹ nếu đã thuộc
+      leading: IconButton(
+        icon: Icon(
+          v.isLearned ? Icons.check_circle : Icons.circle_outlined,
+          color: v.isLearned ? Colors.green : Colors.grey,
+          size: 28,
+        ),
+        onPressed: () async {
+          if (AuthHelper.isGuest) {
+            _showLoginHint();
+            return;
+          }
+          // Optimistic UI Update: Cập nhật UI trước khi gọi API để app mượt hơn
+          setState(() {
+             // Tìm và sửa trực tiếp trong allList để ko cần reload lại API
+             final index = allList.indexWhere((item) => item.id == v.id);
+             if (index != -1) {
+               allList[index] = Vocabulary(
+                 id: v.id, categoryId: v.categoryId, kanji: v.kanji, hiragana: v.hiragana, 
+                 romaji: v.romaji, meaningVn: v.meaningVn, meaningEn: v.meaningEn, 
+                 isFavorite: v.isFavorite, isLearned: !v.isLearned // Toggle
+               );
+               _applyFilter(); // Filter lại list hiển thị
+             }
+          });
+          
+          // Gọi API ngầm bên dưới
+          await repository.toggleLearned(v.id, !v.isLearned);
+        },
+      ),
+      title: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Text(
+            v.kanji.isNotEmpty ? v.kanji : v.hiragana,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          if (v.kanji.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Text('(${v.hiragana})', style: const TextStyle(color: Colors.grey)),
+          ]
+        ],
+      ),
+      subtitle: Text(
+        '${v.meaningVn} / ${v.meaningEn}',
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: IconButton(
+        icon: Icon(
+          v.isFavorite ? Icons.star : Icons.star_border,
+          color: v.isFavorite ? Colors.amber : Colors.grey,
+        ),
+        onPressed: () async {
+           if (AuthHelper.isGuest) {
+            _showLoginHint();
+            return;
+          }
+          setState(() {
+             final index = allList.indexWhere((item) => item.id == v.id);
+             if (index != -1) {
+               allList[index] = Vocabulary(
+                 id: v.id, categoryId: v.categoryId, kanji: v.kanji, hiragana: v.hiragana, 
+                 romaji: v.romaji, meaningVn: v.meaningVn, meaningEn: v.meaningEn, 
+                 isFavorite: !v.isFavorite, // Toggle
+                 isLearned: v.isLearned 
+               );
+               _applyFilter();
+             }
+          });
+          await repository.toggleFavorite(v.id, !v.isFavorite);
+        },
+      ),
+      onTap: () {
+        // Mở chi tiết (Sẽ làm sau)
+      },
+    );
+  }
 
-          final matchSearch =
-              text.isEmpty ||
-              v.kanji.toLowerCase().contains(text) ||
-              v.hiragana.toLowerCase().contains(text) ||
-              v.romaji.toLowerCase().contains(text) ||
-              v.meaningEn.toLowerCase().contains(text) ||
-              v.meaningVn.toLowerCase().contains(text);
+  void _applyFilter() {
+    filteredList = allList.where((v) {
+      // 1. Lọc theo Category
+      final matchCategory = selectedCategoryId == null || v.categoryId == selectedCategoryId;
 
-          return matchCategory && matchSearch;
-        }).toList();
+      // 2. Lọc theo Search Text
+      final text = searchText.toLowerCase();
+      final matchSearch = text.isEmpty ||
+          v.kanji.toLowerCase().contains(text) ||
+          v.hiragana.toLowerCase().contains(text) ||
+          v.meaningVn.toLowerCase().contains(text) ||
+          v.meaningEn.toLowerCase().contains(text);
 
-    setState(() {});
+      // 3. Lọc theo Status Tab
+      bool matchStatus = true;
+      if (filterType == 'learned') matchStatus = v.isLearned;
+      if (filterType == 'unlearned') matchStatus = !v.isLearned;
+      if (filterType == 'favorite') matchStatus = v.isFavorite;
+
+      return matchCategory && matchSearch && matchStatus;
+    }).toList();
   }
 }
