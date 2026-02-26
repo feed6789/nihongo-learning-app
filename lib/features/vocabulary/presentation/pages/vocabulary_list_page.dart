@@ -112,19 +112,40 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
             },
           ),
           if (user == null)
-            IconButton(
-              icon: const Icon(Icons.login),
-              onPressed: () => Navigator.push(
-                  context, MaterialPageRoute(builder: (_) => const LoginPage())),
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () async {
-                await Supabase.instance.client.auth.signOut();
-                if(mounted) _loadVocabulary(); // Reload lại data dạng Guest
-              },
-            ),
+        IconButton(
+          icon: const Icon(Icons.login),
+          tooltip: 'Đăng nhập',
+          onPressed: () async {
+            // SỬA Ở ĐÂY:
+            // Chờ kết quả trả về từ LoginPage
+            final result = await Navigator.push(
+              context, 
+              MaterialPageRoute(builder: (_) => const LoginPage())
+            );
+
+            // Nếu result == true (đăng nhập thành công), reload lại list
+            if (result == true) {
+              _loadVocabulary(); 
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Đã đăng nhập và đồng bộ dữ liệu!')),
+              );
+            }
+          },
+        )
+      else
+        IconButton(
+          icon: const Icon(Icons.logout),
+          tooltip: 'Đăng xuất',
+          onPressed: () async {
+            await Supabase.instance.client.auth.signOut();
+            if(mounted) {
+               _loadVocabulary(); // Reload lại data về trạng thái Guest
+               ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Đã đăng xuất')),
+              );
+            }
+          },
+        ),
         ],
       ),
       body: Column(
