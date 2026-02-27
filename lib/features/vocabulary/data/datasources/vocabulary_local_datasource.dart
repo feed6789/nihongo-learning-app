@@ -1,5 +1,4 @@
 import '../../../../core/local_db/db_instance.dart';
-import '../../../../core/local_db/app_database.dart';
 import '../models/vocabulary_model.dart';
 
 class VocabularyLocalDatasource {

@@ -1,6 +1,4 @@
 // lib/features/vocabulary/data/datasources/vocabulary_remote_datasource.dart
-
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/services/supabase_service.dart';
 import '../../../../core/ultis/auth_helper.dart'; // Import AuthHelper
 import '../models/vocabulary_model.dart';
