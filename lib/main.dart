@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nihongo_app/features/vocabulary/presentation/pages/vocabulary_list_page.dart';
 import 'core/services/supabase_service.dart';
-import 'features/auth/presentation/auth_gate.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

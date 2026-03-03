@@ -8,6 +8,7 @@ import 'package:nihongo_app/features/vocabulary/data/datasources/vocabulary_remo
 import 'package:nihongo_app/features/vocabulary/data/models/category_model.dart';
 import 'package:nihongo_app/features/vocabulary/data/models/vocabulary.dart';
 import 'package:nihongo_app/features/vocabulary/data/repositories/vocabulary_repository.dart';
+import 'package:nihongo_app/features/vocabulary/presentation/pages/photo_translate_page.dart';
 import 'package:nihongo_app/features/vocabulary/presentation/pages/vocabulary_form_page.dart';
 import 'package:nihongo_app/features/vocabulary/presentation/pages/vocabulary_quiz_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -21,12 +22,12 @@ class VocabularyListPage extends StatefulWidget {
 
 class _VocabularyListPageState extends State<VocabularyListPage> {
   late final VocabularyRepository repository;
-  
+
   // Data States
   List<Vocabulary> allList = [];
   List<Vocabulary> filteredList = [];
   List<CategoryModel> categories = [];
-  
+
   // UI States
   bool isLoading = true;
   int? selectedCategoryId;
@@ -50,11 +51,11 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
 
   Future<void> _loadVocabulary() async {
     setState(() => isLoading = true);
-    
+
     try {
       // Gọi repository
       final data = await repository.getAll();
-      
+
       if (mounted) {
         setState(() {
           allList = data;
@@ -66,7 +67,10 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
       print("Lỗi tải dữ liệu: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi tải dữ liệu: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Lỗi tải dữ liệu: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -90,10 +94,11 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
         content: const Text('Vui lòng đăng nhập để lưu tiến độ học!'),
         action: SnackBarAction(
           label: 'Đăng nhập',
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const LoginPage()),
-          ),
+          onPressed:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginPage()),
+              ),
         ),
       ),
     );
@@ -109,60 +114,77 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
         centerTitle: true,
         actions: [
           IconButton(
+            icon: const Icon(Icons.document_scanner), // Icon máy quét
+            tooltip: 'Dịch hình ảnh',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PhotoTranslatePage()),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.quiz),
             tooltip: 'Ôn tập',
             onPressed: () {
               // Logic Quiz: Chỉ lấy những từ chưa thuộc hoặc yêu thích để ôn
-              final quizList = allList.where((v) => !v.isLearned || v.isFavorite).toList();
-              
+              final quizList =
+                  allList.where((v) => !v.isLearned || v.isFavorite).toList();
+
               if (quizList.length < 4) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Cần ít nhất 4 từ để bắt đầu Quiz!')),
+                  const SnackBar(
+                    content: Text('Cần ít nhất 4 từ để bắt đầu Quiz!'),
+                  ),
                 );
                 return;
               }
 
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => VocabularyQuizPage(vocabList: quizList)),
+                MaterialPageRoute(
+                  builder: (_) => VocabularyQuizPage(vocabList: quizList),
+                ),
               );
             },
           ),
           if (user == null)
-        IconButton(
-          icon: const Icon(Icons.login),
-          tooltip: 'Đăng nhập',
-          onPressed: () async {
-            // SỬA Ở ĐÂY:
-            // Chờ kết quả trả về từ LoginPage
-            final result = await Navigator.push(
-              context, 
-              MaterialPageRoute(builder: (_) => const LoginPage())
-            );
+            IconButton(
+              icon: const Icon(Icons.login),
+              tooltip: 'Đăng nhập',
+              onPressed: () async {
+                // SỬA Ở ĐÂY:
+                // Chờ kết quả trả về từ LoginPage
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                );
 
-            // Nếu result == true (đăng nhập thành công), reload lại list
-            if (result == true) {
-              _loadVocabulary(); 
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Đã đăng nhập và đồng bộ dữ liệu!')),
-              );
-            }
-          },
-        )
-      else
-        IconButton(
-          icon: const Icon(Icons.logout),
-          tooltip: 'Đăng xuất',
-          onPressed: () async {
-            await Supabase.instance.client.auth.signOut();
-            if(mounted) {
-               _loadVocabulary(); // Reload lại data về trạng thái Guest
-               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Đã đăng xuất')),
-              );
-            }
-          },
-        ),
+                // Nếu result == true (đăng nhập thành công), reload lại list
+                if (result == true) {
+                  _loadVocabulary();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Đã đăng nhập và đồng bộ dữ liệu!'),
+                    ),
+                  );
+                }
+              },
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Đăng xuất',
+              onPressed: () async {
+                await Supabase.instance.client.auth.signOut();
+                if (mounted) {
+                  _loadVocabulary(); // Reload lại data về trạng thái Guest
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Đã đăng xuất')));
+                }
+              },
+            ),
         ],
       ),
       body: Column(
@@ -178,10 +200,12 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Tiến độ: ${( _progress * 100).toStringAsFixed(1)}%',
+                      'Tiến độ: ${(_progress * 100).toStringAsFixed(1)}%',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    Text('${allList.where((v) => v.isLearned).length}/${allList.length} từ'),
+                    Text(
+                      '${allList.where((v) => v.isLearned).length}/${allList.length} từ',
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -208,7 +232,10 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
                         decoration: const InputDecoration(
                           prefixIcon: Icon(Icons.search),
                           hintText: 'Tìm Kanji, Hiragana, Nghĩa...',
-                          contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 0,
+                            horizontal: 10,
+                          ),
                           border: OutlineInputBorder(),
                         ),
                         onChanged: (value) {
@@ -225,8 +252,16 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
                       underline: Container(), // Bỏ gạch chân mặc định
                       icon: const Icon(Icons.filter_list),
                       items: [
-                        const DropdownMenuItem(value: null, child: Text('Tất cả chủ đề')),
-                        ...categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.title))),
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Text('Tất cả chủ đề'),
+                        ),
+                        ...categories.map(
+                          (c) => DropdownMenuItem(
+                            value: c.id,
+                            child: Text(c.title),
+                          ),
+                        ),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -256,23 +291,29 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
 
           // 3. DANH SÁCH TỪ VỰNG
           Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : filteredList.isEmpty
-                    ? const Center(child: Text('Không tìm thấy từ vựng nào.', style: TextStyle(color: Colors.grey)))
-                    : ListView.separated(
-                        padding: const EdgeInsets.only(bottom: 80),
-                        itemCount: filteredList.length,
-                        separatorBuilder: (c, i) => const Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          final v = filteredList[index];
-                          return _buildVocabularyItem(v);
-                        },
+            child:
+                isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : filteredList.isEmpty
+                    ? const Center(
+                      child: Text(
+                        'Không tìm thấy từ vựng nào.',
+                        style: TextStyle(color: Colors.grey),
                       ),
+                    )
+                    : ListView.separated(
+                      padding: const EdgeInsets.only(bottom: 80),
+                      itemCount: filteredList.length,
+                      separatorBuilder: (c, i) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final v = filteredList[index];
+                        return _buildVocabularyItem(v);
+                      },
+                    ),
           ),
         ],
       ),
-      
+
       // Nút thêm từ (Chỉ hiện nếu Admin hoặc User thích thêm private note - tùy logic sau này)
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
@@ -315,7 +356,10 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
   Widget _buildVocabularyItem(Vocabulary v) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      tileColor: v.isLearned ? Colors.green.withValues(alpha: 0.1) : null, // Highlight nhẹ nếu đã thuộc
+      tileColor:
+          v.isLearned
+              ? Colors.green.withValues(alpha: 0.1)
+              : null, // Highlight nhẹ nếu đã thuộc
       leading: IconButton(
         icon: Icon(
           v.isLearned ? Icons.check_circle : Icons.circle_outlined,
@@ -329,18 +373,24 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
           }
           // Optimistic UI Update: Cập nhật UI trước khi gọi API để app mượt hơn
           setState(() {
-             // Tìm và sửa trực tiếp trong allList để ko cần reload lại API
-             final index = allList.indexWhere((item) => item.id == v.id);
-             if (index != -1) {
-               allList[index] = Vocabulary(
-                 id: v.id, categoryId: v.categoryId, kanji: v.kanji, hiragana: v.hiragana, 
-                 romaji: v.romaji, meaningVn: v.meaningVn, meaningEn: v.meaningEn, 
-                 isFavorite: v.isFavorite, isLearned: !v.isLearned // Toggle
-               );
-               _applyFilter(); // Filter lại list hiển thị
-             }
+            // Tìm và sửa trực tiếp trong allList để ko cần reload lại API
+            final index = allList.indexWhere((item) => item.id == v.id);
+            if (index != -1) {
+              allList[index] = Vocabulary(
+                id: v.id,
+                categoryId: v.categoryId,
+                kanji: v.kanji,
+                hiragana: v.hiragana,
+                romaji: v.romaji,
+                meaningVn: v.meaningVn,
+                meaningEn: v.meaningEn,
+                isFavorite: v.isFavorite,
+                isLearned: !v.isLearned, // Toggle
+              );
+              _applyFilter(); // Filter lại list hiển thị
+            }
           });
-          
+
           // Gọi API ngầm bên dưới
           await repository.toggleLearned(v.id, !v.isLearned);
         },
@@ -356,7 +406,7 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
           if (v.kanji.isNotEmpty) ...[
             const SizedBox(width: 8),
             Text('(${v.hiragana})', style: const TextStyle(color: Colors.grey)),
-          ]
+          ],
         ],
       ),
       subtitle: Text(
@@ -370,21 +420,26 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
           color: v.isFavorite ? Colors.amber : Colors.grey,
         ),
         onPressed: () async {
-           if (AuthHelper.isGuest) {
+          if (AuthHelper.isGuest) {
             _showLoginHint();
             return;
           }
           setState(() {
-             final index = allList.indexWhere((item) => item.id == v.id);
-             if (index != -1) {
-               allList[index] = Vocabulary(
-                 id: v.id, categoryId: v.categoryId, kanji: v.kanji, hiragana: v.hiragana, 
-                 romaji: v.romaji, meaningVn: v.meaningVn, meaningEn: v.meaningEn, 
-                 isFavorite: !v.isFavorite, // Toggle
-                 isLearned: v.isLearned 
-               );
-               _applyFilter();
-             }
+            final index = allList.indexWhere((item) => item.id == v.id);
+            if (index != -1) {
+              allList[index] = Vocabulary(
+                id: v.id,
+                categoryId: v.categoryId,
+                kanji: v.kanji,
+                hiragana: v.hiragana,
+                romaji: v.romaji,
+                meaningVn: v.meaningVn,
+                meaningEn: v.meaningEn,
+                isFavorite: !v.isFavorite, // Toggle
+                isLearned: v.isLearned,
+              );
+              _applyFilter();
+            }
           });
           await repository.toggleFavorite(v.id, !v.isFavorite);
         },
@@ -396,25 +451,28 @@ class _VocabularyListPageState extends State<VocabularyListPage> {
   }
 
   void _applyFilter() {
-    filteredList = allList.where((v) {
-      // 1. Lọc theo Category
-      final matchCategory = selectedCategoryId == null || v.categoryId == selectedCategoryId;
+    filteredList =
+        allList.where((v) {
+          // 1. Lọc theo Category
+          final matchCategory =
+              selectedCategoryId == null || v.categoryId == selectedCategoryId;
 
-      // 2. Lọc theo Search Text
-      final text = searchText.toLowerCase();
-      final matchSearch = text.isEmpty ||
-          v.kanji.toLowerCase().contains(text) ||
-          v.hiragana.toLowerCase().contains(text) ||
-          v.meaningVn.toLowerCase().contains(text) ||
-          v.meaningEn.toLowerCase().contains(text);
+          // 2. Lọc theo Search Text
+          final text = searchText.toLowerCase();
+          final matchSearch =
+              text.isEmpty ||
+              v.kanji.toLowerCase().contains(text) ||
+              v.hiragana.toLowerCase().contains(text) ||
+              v.meaningVn.toLowerCase().contains(text) ||
+              v.meaningEn.toLowerCase().contains(text);
 
-      // 3. Lọc theo Status Tab
-      bool matchStatus = true;
-      if (filterType == 'learned') matchStatus = v.isLearned;
-      if (filterType == 'unlearned') matchStatus = !v.isLearned;
-      if (filterType == 'favorite') matchStatus = v.isFavorite;
+          // 3. Lọc theo Status Tab
+          bool matchStatus = true;
+          if (filterType == 'learned') matchStatus = v.isLearned;
+          if (filterType == 'unlearned') matchStatus = !v.isLearned;
+          if (filterType == 'favorite') matchStatus = v.isFavorite;
 
-      return matchCategory && matchSearch && matchStatus;
-    }).toList();
+          return matchCategory && matchSearch && matchStatus;
+        }).toList();
   }
 }
