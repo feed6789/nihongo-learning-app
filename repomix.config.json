@@ -1,9 +1,16 @@
 {
   "output": {
-    "filePath": "all-flutter-code.txt",
-    "style": "markdown" 
+    "filePath": "lingodual-full-context.xml",
+    "style": "xml",
+    "headerText": "Dự án: LingoDual (Học tiếng Nhật N5-N1). Kiến trúc: Clean Architecture. Stack: Flutter, Riverpod, Supabase. Vui lòng đọc các file .md và .sql trước khi phân tích logic code trong lib/."
   },
-  "include": ["lib/**/*", "pubspec.yaml", "analysis_options.yaml"],
+  "include": [
+    "lib/**/*",
+    "pubspec.yaml",
+    "analysis_options.yaml",
+    "*.md",
+    "*.sql"
+  ],
   "ignore": {
     "customPatterns": [
       "**/build/**",
@@ -16,7 +23,14 @@
       "**/macos/**",
       "**/windows/**",
       "**/*.png",
-      "**/*.jpg"
+      "**/*.jpg",
+      "**/*.jpeg",
+      "**/*.svg",
+      "**/*.ico",
+      "**/*.g.dart",
+      "**/*.freezed.dart",
+      "**/generated/**",
+      "pubspec.lock"
     ]
   }
 }

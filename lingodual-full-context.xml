@@ -1,0 +1,2039 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files and files not matching ignore patterns, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+- Pay special attention to the Repository Description. These contain important context and guidelines specific to this project.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: lib/**/*, pubspec.yaml, analysis_options.yaml, *.md, *.sql
+- Files matching these patterns are excluded: **/build/**, **/.dart_tool/**, **/.git/**, **/android/**, **/ios/**, **/web/**, **/linux/**, **/macos/**, **/windows/**, **/*.png, **/*.jpg, **/*.jpeg, **/*.svg, **/*.ico, **/*.g.dart, **/*.freezed.dart, **/generated/**, pubspec.lock
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<user_provided_header>
+Dự án: LingoDual (Học tiếng Nhật N5-N1). Kiến trúc: Clean Architecture. Stack: Flutter, Riverpod, Supabase. Vui lòng đọc các file .md và .sql trước khi phân tích logic code trong lib/.
+</user_provided_header>
+
+<directory_structure>
+analysis_options.yaml
+ARCHITECTURE.md
+database_schema.sql
+lib/core/constants/app_strings.dart
+lib/core/constants/supabase_constants.dart
+lib/core/local_db/app_database.dart
+lib/core/local_db/db_instance.dart
+lib/core/local_db/native_db.dart
+lib/core/local_db/tables/local_vocab_progress.dart
+lib/core/local_db/web_db.dart
+lib/core/services/supabase_service.dart
+lib/core/ultis/auth_helper.dart
+lib/core/ultis/logger.dart
+lib/features/auth/data/auth_service.dart
+lib/features/auth/presentation/auth_gate.dart
+lib/features/auth/presentation/login_page.dart
+lib/features/auth/presentation/register_page.dart
+lib/features/features.txt
+lib/features/vocabulary/data/datasources/category_remote_datasource.dart
+lib/features/vocabulary/data/datasources/vocabulary_local_datasource.dart
+lib/features/vocabulary/data/datasources/vocabulary_remote_datasource.dart
+lib/features/vocabulary/data/models/category_model.dart
+lib/features/vocabulary/data/models/vocabulary_model.dart
+lib/features/vocabulary/data/models/vocabulary.dart
+lib/features/vocabulary/data/repositories/vocabulary_repository.dart
+lib/features/vocabulary/presentation/pages/photo_translate_page.dart
+lib/features/vocabulary/presentation/pages/vocabulary_detail_page.dart
+lib/features/vocabulary/presentation/pages/vocabulary_form_page.dart
+lib/features/vocabulary/presentation/pages/vocabulary_list_page.dart
+lib/features/vocabulary/presentation/pages/vocabulary_quiz_page.dart
+lib/features/vocabulary/presentation/widgets/vocabulary_card.dart
+lib/features/vocabulary/vocabulary_routes.dart
+lib/main.dart
+lib/shared/themes/app_theme.dart
+lib/shared/widgets/app_button.dart
+pubspec.yaml
+README.md
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="ARCHITECTURE.md">
+
+</file>
+
+<file path="database_schema.sql">
+
+</file>
+
+<file path="lib/core/constants/app_strings.dart">
+
+</file>
+
+<file path="lib/core/constants/supabase_constants.dart">
+
+</file>
+
+<file path="lib/core/local_db/native_db.dart">
+// lib/core/local_db/native_db.dart
+import 'dart:io';
+import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+
+QueryExecutor openConnection() {
+  return LazyDatabase(() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File(p.join(dir.path, 'nihongo_local.db'));
+    return NativeDatabase(file);
+  });
+}
+</file>
+
+<file path="lib/core/local_db/web_db.dart">
+// lib/core/local_db/web_db.dart
+import 'package:drift/drift.dart';
+// ignore: deprecated_member_use
+import 'package:drift/web.dart';
+
+QueryExecutor openConnection() {
+  return WebDatabase('nihongo_local');
+}
+</file>
+
+<file path="lib/core/services/supabase_service.dart">
+// lib/core/services/supabase_service.dart
+
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class SupabaseService {
+  static late SupabaseClient client;
+
+  static Future<void> init() async {
+    await Supabase.initialize(
+      url: 'https://khywpgvcmkwvufquiudy.supabase.co',
+      anonKey:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtoeXdwZ3ZjbWt3dnVmcXVpdWR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1MDQ2NDAsImV4cCI6MjA4NTA4MDY0MH0.f-no2MOG1fBtbcV73E4z2ALxtWhsbKF4Hz7YwFQQtDA',
+    );
+
+    client = Supabase.instance.client;
+  }
+}
+</file>
+
+<file path="lib/core/ultis/auth_helper.dart">
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class AuthHelper {
+  static User? get currentUser => Supabase.instance.client.auth.currentUser;
+
+  static bool get isGuest => currentUser == null;
+}
+</file>
+
+<file path="lib/core/ultis/logger.dart">
+
+</file>
+
+<file path="lib/features/auth/presentation/auth_gate.dart">
+import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../vocabulary/presentation/pages/vocabulary_list_page.dart';
+import 'login_page.dart';
+
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<AuthState>(
+      stream: Supabase.instance.client.auth.onAuthStateChange,
+      builder: (context, snapshot) {
+        final session = snapshot.data?.session;
+
+        if (session == null) {
+          return const LoginPage();
+        } else {
+          return const VocabularyListPage();
+        }
+      },
+    );
+  }
+}
+</file>
+
+<file path="lib/features/auth/presentation/register_page.dart">
+
+</file>
+
+<file path="lib/features/vocabulary/data/datasources/category_remote_datasource.dart">
+import '../../../../core/services/supabase_service.dart';
+import '../models/category_model.dart';
+
+class CategoryRemoteDatasource {
+  final _client = SupabaseService.client;
+
+  Future<List<CategoryModel>> getVocabularyCategories() async {
+    final response = await _client
+        .from('categories')
+        .select()
+        .eq('type', 'vocab')
+        .order('order_index');
+
+    return (response as List).map((e) => CategoryModel.fromJson(e)).toList();
+  }
+}
+</file>
+
+<file path="lib/features/vocabulary/data/models/category_model.dart">
+class CategoryModel {
+  final int id;
+  final String title;
+
+  CategoryModel({required this.id, required this.title});
+
+  factory CategoryModel.fromJson(Map<String, dynamic> json) {
+    return CategoryModel(id: json['id'], title: json['title']);
+  }
+}
+</file>
+
+<file path="lib/features/vocabulary/presentation/pages/photo_translate_page.dart">
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:google_mlkit_translation/google_mlkit_translation.dart';
+import 'package:image_picker/image_picker.dart';
+
+class PhotoTranslatePage extends StatefulWidget {
+  const PhotoTranslatePage({super.key});
+
+  @override
+  State<PhotoTranslatePage> createState() => _PhotoTranslatePageState();
+}
+
+class _PhotoTranslatePageState extends State<PhotoTranslatePage> {
+  File? _image;
+  String _extractedText = '';
+  String _translatedText = '';
+  bool _isProcessing = false;
+
+  // 1. Khởi tạo bộ nhận diện chữ (Script Japanese để đọc Kanji/Kana)
+  final _textRecognizer = TextRecognizer(script: TextRecognitionScript.japanese);
+  
+  // 2. Khởi tạo bộ dịch (Nhật -> Việt)
+  final _onDeviceTranslator = OnDeviceTranslator(
+    sourceLanguage: TranslateLanguage.japanese,
+    targetLanguage: TranslateLanguage.vietnamese,
+  );
+
+  @override
+  void dispose() {
+    _textRecognizer.close();
+    _onDeviceTranslator.close();
+    super.dispose();
+  }
+
+  // Hàm chọn ảnh và xử lý
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await ImagePicker().pickImage(source: source);
+    if (pickedFile == null) return;
+
+    setState(() {
+      _image = File(pickedFile.path);
+      _isProcessing = true;
+      _extractedText = '';
+      _translatedText = '';
+    });
+
+    try {
+      final inputImage = InputImage.fromFilePath(pickedFile.path);
+
+      // BƯỚC 1: OCR - Đọc chữ từ ảnh
+      final recognizedText = await _textRecognizer.processImage(inputImage);
+      final rawText = recognizedText.text;
+
+      if (rawText.isEmpty) {
+        setState(() => _extractedText = 'Không tìm thấy văn bản nào.');
+        return;
+      }
+
+      setState(() => _extractedText = rawText);
+
+      // BƯỚC 2: Dịch thuật
+      // Lưu ý: Lần đầu chạy nó sẽ cần tải model ngôn ngữ về máy (khoảng 30MB)
+      final translated = await _onDeviceTranslator.translateText(rawText);
+      
+      setState(() => _translatedText = translated);
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi: $e')),
+      );
+    } finally {
+      setState(() => _isProcessing = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Dịch qua hình ảnh')),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Khu vực hiển thị ảnh
+            Container(
+              height: 250,
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey),
+              ),
+              child: _image != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.file(_image!, fit: BoxFit.cover),
+                    )
+                  : const Center(
+                      child: Icon(Icons.image, size: 50, color: Colors.grey),
+                    ),
+            ),
+            const SizedBox(height: 16),
+
+            // Các nút chọn ảnh
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _isProcessing ? null : () => _pickImage(ImageSource.camera),
+                    icon: const Icon(Icons.camera_alt),
+                    label: const Text('Chụp ảnh'),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _isProcessing ? null : () => _pickImage(ImageSource.gallery),
+                    icon: const Icon(Icons.photo_library),
+                    label: const Text('Thư viện'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            if (_isProcessing)
+              const Center(child: CircularProgressIndicator())
+            else ...[
+              // Hiển thị kết quả Tiếng Nhật gốc
+              const Text('🇯🇵 Văn bản gốc:', style: TextStyle(fontWeight: FontWeight.bold)),
+              Container(
+                margin: const EdgeInsets.only(top: 8, bottom: 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: SelectableText(
+                  _extractedText.isEmpty ? 'Chưa có dữ liệu' : _extractedText,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+
+              // Hiển thị kết quả Tiếng Việt
+              const Text('🇻🇳 Bản dịch:', style: TextStyle(fontWeight: FontWeight.bold)),
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: SelectableText(
+                  _translatedText.isEmpty ? '...' : _translatedText,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+</file>
+
+<file path="lib/features/vocabulary/presentation/pages/vocabulary_detail_page.dart">
+
+</file>
+
+<file path="lib/features/vocabulary/presentation/pages/vocabulary_quiz_page.dart">
+import 'dart:math';
+import 'package:flutter/material.dart';
+import '../../data/models/vocabulary.dart';
+
+class VocabularyQuizPage extends StatefulWidget {
+  final List<Vocabulary> vocabList;
+
+  const VocabularyQuizPage({super.key, required this.vocabList});
+
+  @override
+  State<VocabularyQuizPage> createState() => _VocabularyQuizPageState();
+}
+
+class _VocabularyQuizPageState extends State<VocabularyQuizPage> {
+  late Vocabulary current;
+  late List<String> options;
+  String? selected;
+  bool answered = false;
+
+  @override
+  void initState() {
+    super.initState();
+    nextQuestion();
+  }
+
+  void nextQuestion() {
+    final rnd = Random();
+
+    current = widget.vocabList[rnd.nextInt(widget.vocabList.length)];
+
+    final others =
+        widget.vocabList.where((v) => v.id != current.id).toList()..shuffle();
+
+    options = [
+      current.meaningEn,
+      others[0].meaningEn,
+      others[1].meaningEn,
+      others[2].meaningEn,
+    ]..shuffle();
+
+    selected = null;
+    answered = false;
+
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Vocabulary Quiz')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Text(
+              current.kanji.isNotEmpty ? current.kanji : current.hiragana,
+              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 24),
+
+            ...options.map((o) {
+              final isCorrect = o == current.meaningEn;
+              Color? color;
+
+              if (answered) {
+                if (o == selected) {
+                  color = isCorrect ? Colors.green : Colors.red;
+                } else if (isCorrect) {
+                  color = Colors.green;
+                }
+              }
+
+              return Card(
+                color: color,
+                child: ListTile(
+                  title: Text(o),
+                  onTap:
+                      answered
+                          ? null
+                          : () {
+                            setState(() {
+                              selected = o;
+                              answered = true;
+                            });
+                          },
+                ),
+              );
+            }),
+
+            const Spacer(),
+
+            ElevatedButton(
+              onPressed: answered ? nextQuestion : null,
+              child: const Text('Next'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+</file>
+
+<file path="lib/features/vocabulary/presentation/widgets/vocabulary_card.dart">
+
+</file>
+
+<file path="lib/features/vocabulary/vocabulary_routes.dart">
+
+</file>
+
+<file path="lib/shared/themes/app_theme.dart">
+
+</file>
+
+<file path="lib/shared/widgets/app_button.dart">
+
+</file>
+
+<file path="README.md">
+# nihongo_app
+
+A new Flutter project.
+
+## Getting Started
+
+This project is a starting point for a Flutter application.
+
+A few resources to get you started if this is your first Flutter project:
+
+- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.
+</file>
+
+<file path="analysis_options.yaml">
+# This file configures the analyzer, which statically analyzes Dart code to
+# check for errors, warnings, and lints.
+#
+# The issues identified by the analyzer are surfaced in the UI of Dart-enabled
+# IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
+# invoked from the command line by running `flutter analyze`.
+
+# The following line activates a set of recommended lints for Flutter apps,
+# packages, and plugins designed to encourage good coding practices.
+analyzer:
+  errors:
+    deprecated_member_use: ignore
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  # The lint rules applied to this project can be customized in the
+  # section below to disable rules from the `package:flutter_lints/flutter.yaml`
+  # included above or to enable additional rules. A list of all available lints
+  # and their documentation is published at https://dart.dev/lints.
+  #
+  # Instead of disabling a lint rule for the entire project in the
+  # section below, it can also be suppressed for a single line of code
+  # or a specific dart file by using the `// ignore: name_of_lint` and
+  # `// ignore_for_file: name_of_lint` syntax on the line or in the file
+  # producing the lint.
+  rules:
+    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
+    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+
+# Additional information about this file can be found at
+# https://dart.dev/guides/language/analysis-options
+</file>
+
+<file path="lib/core/local_db/db_instance.dart">
+import 'app_database.dart';
+
+final appDatabase = AppDatabase();
+</file>
+
+<file path="lib/core/local_db/tables/local_vocab_progress.dart">
+import 'package:drift/drift.dart';
+
+// Đổi tên class thành VocabularyTable để phản ánh đúng dữ liệu
+class VocabularyTable extends Table {
+  // Map fields tương tự VocabularyModel trên Supabase
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get categoryId => integer()();
+  TextColumn get kanji => text().withDefault(const Constant(''))();
+  TextColumn get hiragana => text().withDefault(const Constant(''))();
+  TextColumn get romaji => text().withDefault(const Constant(''))();
+  TextColumn get meaningVn => text().withDefault(const Constant(''))();
+  TextColumn get meaningEn => text().withDefault(const Constant(''))();
+
+  // Progress status
+  BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
+  BoolColumn get isLearned => boolean().withDefault(const Constant(false))();
+
+  // Đảm bảo ID khớp với Supabase để sync dễ dàng
+  @override
+  Set<Column> get primaryKey => {id};
+}
+</file>
+
+<file path="lib/features/auth/data/auth_service.dart">
+// lib/features/auth/data/auth_service.dart
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class AuthService {
+  final _client = Supabase.instance.client;
+
+  User? get currentUser => _client.auth.currentUser;
+
+  // Đăng nhập
+  Future<AuthResponse> signInEmail(String email, String password) async {
+    try {
+      return await _client.auth.signInWithPassword(email: email, password: password);
+    } on AuthException catch (e) {
+      throw _handleAuthError(e);
+    } catch (e) {
+      throw 'Đăng nhập thất bại. Vui lòng thử lại.';
+    }
+  }
+
+  // Đăng ký
+  Future<AuthResponse> signUpEmail(String email, String password) async {
+    try {
+      return await _client.auth.signUp(email: email, password: password);
+    } on AuthException catch (e) {
+      throw _handleAuthError(e);
+    } catch (e) {
+      throw 'Đăng ký thất bại. Vui lòng thử lại.';
+    }
+  }
+
+  Future<void> signOut() async {
+    await _client.auth.signOut();
+  }
+  
+  // Google Login (Cần setup trên Supabase Dashboard trước mới chạy được)
+  Future<void> signInWithGoogle() async {
+    try {
+      await _client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'io.supabase.flutter://login-callback',
+      );
+    } catch (e) {
+      throw 'Lỗi Google Sign-In: $e';
+    }
+  }
+
+  // Hàm helper để dịch lỗi sang tiếng Việt
+  String _handleAuthError(AuthException error) {
+    switch (error.message) {
+      case 'Invalid login credentials':
+        return 'Email hoặc mật khẩu không đúng.';
+      case 'User already registered':
+        return 'Email này đã được đăng ký.';
+      default:
+        return error.message; // Trả về lỗi gốc nếu không biết
+    }
+  }
+}
+</file>
+
+<file path="lib/features/auth/presentation/login_page.dart">
+// lib/features/auth/presentation/login_page.dart
+
+import 'package:flutter/material.dart';
+import '../data/auth_service.dart';
+
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final _auth = AuthService();
+  final _emailCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  bool _isLoginMode = true; // true: Login, false: Register
+  bool _isLoading = false;
+  bool _obscurePass = true;
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+    final email = _emailCtrl.text.trim();
+    final pass = _passCtrl.text.trim();
+
+    try {
+      if (_isLoginMode) {
+        // --- LOGIC ĐĂNG NHẬP ---
+        await _auth.signInEmail(email, pass);
+        if (mounted) {
+          // Pop về trang trước và trả về true để báo hiệu reload
+          Navigator.pop(context, true);
+        }
+      } else {
+        // --- LOGIC ĐĂNG KÝ ---
+        final res = await _auth.signUpEmail(email, pass);
+        // Kiểm tra xem Supabase có yêu cầu confirm email không
+        if (res.session == null && res.user != null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Đăng ký thành công! Vui lòng kiểm tra email để xác nhận.')),
+            );
+            setState(() => _isLoginMode = true); // Chuyển về tab đăng nhập
+          }
+        } else {
+          // Nếu đăng ký xong mà có session luôn (tắt confirm email)
+          if (mounted) Navigator.pop(context, true);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(_isLoginMode ? 'Đăng nhập' : 'Đăng ký')),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Logo hoặc Icon
+                Icon(Icons.lock_person, size: 80, color: Theme.of(context).primaryColor),
+                const SizedBox(height: 24),
+
+                // Email Field
+                TextFormField(
+                  controller: _emailCtrl,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email),
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (v) => v == null || !v.contains('@') ? 'Email không hợp lệ' : null,
+                ),
+                const SizedBox(height: 16),
+
+                // Password Field
+                TextFormField(
+                  controller: _passCtrl,
+                  obscureText: _obscurePass,
+                  decoration: InputDecoration(
+                    labelText: 'Mật khẩu',
+                    prefixIcon: const Icon(Icons.lock),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscurePass ? Icons.visibility : Icons.visibility_off),
+                      onPressed: () => setState(() => _obscurePass = !_obscurePass),
+                    ),
+                  ),
+                  validator: (v) => v != null && v.length < 6 ? 'Mật khẩu phải trên 6 ký tự' : null,
+                ),
+                const SizedBox(height: 24),
+
+                // Nút Submit
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : Text(_isLoginMode ? 'Đăng nhập' : 'Đăng ký tài khoản'),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Nút chuyển đổi Login <-> Register
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _isLoginMode = !_isLoginMode;
+                      _formKey.currentState?.reset(); // Xóa lỗi cũ
+                    });
+                  },
+                  child: Text(_isLoginMode
+                      ? 'Chưa có tài khoản? Đăng ký ngay'
+                      : 'Đã có tài khoản? Đăng nhập'),
+                ),
+                
+                // Google Sign In (Optional)
+                const Divider(),
+                ElevatedButton.icon(
+                   icon: const Icon(Icons.g_mobiledata), // Icon Google giả lập
+                   label: const Text('Tiếp tục với Google'),
+                   onPressed: () => _auth.signInWithGoogle(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+</file>
+
+<file path="lib/features/vocabulary/data/datasources/vocabulary_local_datasource.dart">
+import '../../../../core/local_db/db_instance.dart';
+import '../models/vocabulary_model.dart';
+
+class VocabularyLocalDatasource {
+  Future<List<VocabularyModel>> getAll() async {
+    final result = await appDatabase.getAll();
+    // Convert Drift Data -> VocabularyModel
+    return result
+        .map(
+          (e) => VocabularyModel(
+            id: e.id,
+            categoryId: e.categoryId,
+            kanji: e.kanji,
+            hiragana: e.hiragana,
+            romaji: e.romaji,
+            wordType:
+                '', // Local db chưa lưu field này, tạm để rỗng hoặc thêm vào Table sau
+            meaningVn: e.meaningVn,
+            meaningEn: e.meaningEn,
+            isFavorite: e.isFavorite,
+            isLearned: e.isLearned,
+          ),
+        )
+        .toList();
+  }
+
+  Future<void> cacheData(List<VocabularyModel> data) async {
+    await appDatabase.cacheVocabularies(data);
+  }
+}
+</file>
+
+<file path="lib/core/local_db/app_database.dart">
+// lib/core/local_db/app_database.dart
+import 'package:drift/drift.dart';
+import 'package:nihongo_app/features/vocabulary/data/models/vocabulary_model.dart';
+import 'tables/local_vocab_progress.dart';
+
+// --- MAGIC HAPPENS HERE ---
+// Mặc định dùng native_db.dart.
+// Nhưng nếu chạy trên web (dart.library.html có sẵn), nó sẽ thay thế bằng web_db.dart
+import 'native_db.dart' if (dart.library.html) 'web_db.dart';
+
+part 'app_database.g.dart';
+
+@DriftDatabase(tables: [VocabularyTable])
+class AppDatabase extends _$AppDatabase {
+  // Gọi hàm openConnection() -> Nó sẽ tự biết là lấy từ file native hay web
+  AppDatabase() : super(openConnection());
+
+  @override
+  int get schemaVersion => 1;
+
+  Future<List<VocabularyTableData>> getAll() => select(vocabularyTable).get();
+
+  Future<void> cacheVocabularies(List<VocabularyModel> models) async {
+    await batch((batch) {
+      for (final model in models) {
+        batch.insert(
+          vocabularyTable,
+          VocabularyTableCompanion.insert(
+            id: Value(model.id),
+            categoryId: model.categoryId,
+            kanji: Value(model.kanji),
+            hiragana: Value(model.hiragana),
+            romaji: Value(model.romaji),
+            meaningVn: Value(model.meaningVn),
+            meaningEn: Value(model.meaningEn),
+            isFavorite: Value(model.isFavorite),
+            isLearned: Value(model.isLearned),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+      }
+    });
+  }
+}
+</file>
+
+<file path="lib/features/vocabulary/data/models/vocabulary.dart">
+class Vocabulary {
+  final int id;
+  final int categoryId;
+  final String kanji;
+  final String hiragana;
+  final String romaji;
+  final String meaningVn;
+  final String meaningEn;
+  final bool isFavorite;
+  final bool isLearned;
+
+  Vocabulary({
+    required this.id,
+    required this.categoryId,
+    required this.kanji,
+    required this.hiragana,
+    required this.romaji,
+    required this.meaningVn,
+    required this.meaningEn,
+    required this.isFavorite,
+    required this.isLearned,
+  });
+
+  factory Vocabulary.fromMap(Map<String, dynamic> map) {
+    return Vocabulary(
+      id: map['id'],
+      categoryId: map['category_id'],
+      kanji: map['kanji'] ?? '',
+      hiragana: map['hiragana'] ?? '',
+      romaji: map['romaji'] ?? '',
+      meaningVn: map['meaning_vn'] ?? '',
+      meaningEn: map['meaning_en'] ?? '',
+      isFavorite: map['is_favorite'] ?? false,
+      isLearned: map['is_learned'] ?? false,
+    );
+  }
+}
+</file>
+
+<file path="lib/features/vocabulary/data/models/vocabulary_model.dart">
+// lib/features/vocabulary/data/models/vocabulary_model.dart
+import 'vocabulary.dart';
+
+class VocabularyModel {
+  final int id;
+  final int categoryId;
+  final String kanji;
+  final String hiragana;
+  final String romaji;
+  final String wordType;
+  final String meaningVn;
+  final String meaningEn;
+  final bool isFavorite;
+  final bool isLearned;
+
+  VocabularyModel({
+    required this.id,
+    required this.categoryId,
+    required this.kanji,
+    required this.hiragana,
+    required this.romaji,
+    required this.wordType,
+    required this.meaningVn,
+    required this.meaningEn,
+    required this.isFavorite,
+    required this.isLearned,
+  });
+
+  factory VocabularyModel.fromJson(Map<String, dynamic> json) {
+    // Logic mới: Kiểm tra xem có dữ liệu progress (kết quả của phép Join) không
+    // Supabase trả về relation dưới dạng List. Ví dụ: user_vocabulary_progress: [{...}]
+    bool favorite = false;
+    bool learned = false;
+
+    if (json['user_vocabulary_progress'] != null &&
+        (json['user_vocabulary_progress'] as List).isNotEmpty) {
+      final progress = (json['user_vocabulary_progress'] as List).first;
+      // Map field từ DB schema (favorite, learned) sang Dart model (isFavorite, isLearned)
+      favorite = progress['favorite'] ?? false;
+      learned = progress['learned'] ?? false;
+    }
+    // Fallback: Nếu không có bảng phụ, giữ logic cũ (cho trường hợp admin view hoặc bảng vocabulary cũ)
+    else {
+      favorite = json['is_favorite'] ?? false;
+      learned = json['is_learned'] ?? false;
+    }
+
+    return VocabularyModel(
+      id: json['id'],
+      categoryId: json['category_id'],
+      kanji: json['kanji'] ?? '',
+      hiragana: json['hiragana'] ?? '',
+      romaji: json['romaji'] ?? '',
+      wordType: json['word_type'] ?? '',
+      meaningVn: json['meaning_vn'] ?? '',
+      meaningEn: json['meaning_en'] ?? '',
+      isFavorite: favorite,
+      isLearned: learned,
+    );
+  }
+
+  // toJson này chủ yếu dùng khi insert từ vựng mới (Admin), không dùng để update progress
+  Map<String, dynamic> toJson() {
+    return {
+      'category_id': categoryId,
+      'kanji': kanji,
+      'hiragana': hiragana,
+      'romaji': romaji,
+      'word_type': wordType,
+      'meaning_vn': meaningVn,
+      'meaning_en': meaningEn,
+      // Lưu ý: Khi insert vocab mới, các field này có thể không cần thiết nếu DB đã tách bảng
+      'is_favorite': isFavorite,
+      'is_learned': isLearned,
+    };
+  }
+
+  Vocabulary toEntity() {
+    return Vocabulary(
+      id: id,
+      categoryId: categoryId,
+      kanji: kanji,
+      hiragana: hiragana,
+      romaji: romaji,
+      meaningEn: meaningEn,
+      meaningVn: meaningVn,
+      isFavorite: isFavorite,
+      isLearned: isLearned,
+    );
+  }
+}
+</file>
+
+<file path="lib/features/vocabulary/presentation/pages/vocabulary_form_page.dart">
+import 'package:flutter/material.dart';
+import 'package:nihongo_app/features/vocabulary/data/models/vocabulary.dart';
+
+import '../../data/models/vocabulary_model.dart';
+import '../../data/repositories/vocabulary_repository.dart';
+import '../../data/datasources/vocabulary_remote_datasource.dart';
+import '../../data/models/category_model.dart';
+import '../../data/datasources/category_remote_datasource.dart';
+
+class VocabularyFormPage extends StatefulWidget {
+  final Vocabulary? vocab; // null = create, có = edit
+
+  const VocabularyFormPage({super.key, this.vocab});
+
+  @override
+  State<VocabularyFormPage> createState() => _VocabularyFormPageState();
+}
+
+class _VocabularyFormPageState extends State<VocabularyFormPage> {
+  final _formKey = GlobalKey<FormState>();
+  List<CategoryModel> categories = [];
+  int? selectedCategoryId;
+  late final VocabularyRepository repository;
+
+  final kanjiCtrl = TextEditingController();
+  final hiraCtrl = TextEditingController();
+  final romajiCtrl = TextEditingController();
+  final meaningEnCtrl = TextEditingController();
+  final meaningVnCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    repository = VocabularyRepository(VocabularyRemoteDatasource());
+
+    if (widget.vocab != null) {
+      kanjiCtrl.text = widget.vocab!.kanji;
+      hiraCtrl.text = widget.vocab!.hiragana;
+      romajiCtrl.text = widget.vocab!.romaji;
+      meaningEnCtrl.text = widget.vocab!.meaningEn;
+      meaningVnCtrl.text = widget.vocab!.meaningVn;
+    }
+
+    CategoryRemoteDatasource().getVocabularyCategories().then((value) {
+      setState(() {
+        categories = value;
+
+        if (widget.vocab != null) {
+          selectedCategoryId = widget.vocab!.categoryId;
+        } else if (categories.isNotEmpty) {
+          selectedCategoryId = categories.first.id;
+        }
+      });
+    });
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final vocab = VocabularyModel(
+      id: widget.vocab?.id ?? 0,
+      categoryId: selectedCategoryId!,
+      kanji: kanjiCtrl.text,
+      hiragana: hiraCtrl.text,
+      romaji: romajiCtrl.text,
+      wordType: '',
+      meaningEn: meaningEnCtrl.text,
+      meaningVn: meaningVnCtrl.text,
+      isFavorite: false,
+      isLearned: false,
+    );
+
+    if (widget.vocab == null) {
+      await repository.add(vocab);
+    } else {
+      await repository.update(widget.vocab!.id, vocab);
+    }
+
+    if (mounted) Navigator.pop(context, true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isEdit = widget.vocab != null;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(isEdit ? 'Edit Vocabulary' : 'Add Vocabulary'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              DropdownButtonFormField<int>(
+                value: selectedCategoryId,
+                decoration: const InputDecoration(labelText: 'Category'),
+                items:
+                    categories
+                        .map(
+                          (c) => DropdownMenuItem(
+                            value: c.id,
+                            child: Text(c.title),
+                          ),
+                        )
+                        .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedCategoryId = value;
+                  });
+                },
+                validator: (v) => v == null ? 'Select category' : null,
+              ),
+
+              TextFormField(
+                controller: kanjiCtrl,
+                decoration: const InputDecoration(labelText: 'Kanji'),
+              ),
+              TextFormField(
+                controller: hiraCtrl,
+                decoration: const InputDecoration(labelText: 'Hiragana'),
+                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
+              ),
+              TextFormField(
+                controller: romajiCtrl,
+                decoration: const InputDecoration(labelText: 'Romaji'),
+              ),
+              TextFormField(
+                controller: meaningEnCtrl,
+                decoration: const InputDecoration(labelText: 'Meaning (EN)'),
+              ),
+              TextFormField(
+                controller: meaningVnCtrl,
+                decoration: const InputDecoration(labelText: 'Meaning (VN)'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(onPressed: _save, child: const Text('Save')),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+</file>
+
+<file path="lib/features/vocabulary/data/datasources/vocabulary_remote_datasource.dart">
+// lib/features/vocabulary/data/datasources/vocabulary_remote_datasource.dart
+
+import '../../../../core/services/supabase_service.dart';
+import '../../../../core/ultis/auth_helper.dart'; // Import AuthHelper
+import '../models/vocabulary_model.dart';
+
+class VocabularyRemoteDatasource {
+  final _client = SupabaseService.client;
+
+  /// Lấy danh sách từ vựng.
+  /// Nếu đã login, sẽ kèm theo trạng thái learned/favorite của user đó.
+  Future<List<VocabularyModel>> getAll() async {
+    final user = AuthHelper.currentUser;
+
+    if (user != null) {
+      // CASE 1: Đã Login -> Join với bảng user_vocabulary_progress
+      // Cú pháp select: *, tên_bảng_phụ(*)
+      final response = await _client
+          .from('vocabulary')
+          .select('*, user_vocabulary_progress(*)')
+          .order('id');
+
+      // Supabase RLS sẽ tự động filter user_vocabulary_progress chỉ trả về row của user hiện tại
+      return (response as List)
+          .map((e) => VocabularyModel.fromJson(e))
+          .toList();
+    } else {
+      // CASE 2: Guest -> Chỉ lấy bảng vocabulary
+      final response = await _client.from('vocabulary').select().order('id');
+      return (response as List)
+          .map((e) => VocabularyModel.fromJson(e))
+          .toList();
+    }
+  }
+
+  /// Cập nhật trạng thái Favorite (Lưu vào user_vocabulary_progress)
+  Future<void> updateFavorite(int vocabId, bool isFavorite) async {
+    final user = AuthHelper.currentUser;
+    if (user == null) return; // Guest không lưu lên server được
+
+    // Dùng Upsert: Nếu chưa có row thì tạo mới, có rồi thì update
+    await _client.from('user_vocabulary_progress').upsert({
+      'user_id': user.id,
+      'vocabulary_id': vocabId,
+      'favorite': isFavorite, // Map đúng tên cột trong DB Schema
+      'last_reviewed': DateTime.now().toIso8601String(),
+    });
+  }
+
+  /// Cập nhật trạng thái Learned (Lưu vào user_vocabulary_progress)
+  Future<void> updateLearned(int vocabId, bool isLearned) async {
+    final user = AuthHelper.currentUser;
+    if (user == null) return;
+
+    await _client.from('user_vocabulary_progress').upsert({
+      'user_id': user.id,
+      'vocabulary_id': vocabId,
+      'learned': isLearned, // Map đúng tên cột trong DB Schema
+      'last_reviewed': DateTime.now().toIso8601String(),
+    });
+  }
+
+  // --- Các hàm Admin (Insert/Update/Delete Vocabulary gốc) giữ nguyên ---
+
+  Future<void> insert(VocabularyModel vocab) async {
+    // Hàm này dành cho Admin thêm từ mới vào kho chung
+    await _client.from('vocabulary').insert(vocab.toJson());
+  }
+
+  Future<void> update(int id, VocabularyModel vocab) async {
+    await _client.from('vocabulary').update(vocab.toJson()).eq('id', id);
+  }
+
+  Future<void> delete(int id) async {
+    await _client.from('vocabulary').delete().eq('id', id);
+  }
+}
+</file>
+
+<file path="lib/main.dart">
+import 'package:flutter/material.dart';
+import 'package:nihongo_app/features/vocabulary/presentation/pages/vocabulary_list_page.dart';
+import 'core/services/supabase_service.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SupabaseService.init();
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Japanese Learning App',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        useMaterial3: true,
+      ),
+      home: const VocabularyListPage(),
+    );
+  }
+}
+</file>
+
+<file path="pubspec.yaml">
+name: nihongo_app
+description: "A new Flutter project."
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# In Android, build-name is used as versionName while build-number used as versionCode.
+# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
+# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
+# Read more about iOS versioning at
+# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+# In Windows, build-name is used as the major, minor, and patch parts
+# of the product and file versions while build-number is used as the build suffix.
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+# Dependencies specify other packages that your package needs in order to work.
+# To automatically upgrade your package dependencies to the latest versions
+# consider running `flutter pub upgrade --major-versions`. Alternatively,
+# dependencies can be manually updated by changing the version numbers below to
+# the latest version available on pub.dev. To see which dependencies have newer
+# versions available, run `flutter pub outdated`.
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
+  cupertino_icons: ^1.0.8
+  supabase_flutter: ^2.12.0
+  # sqlite3: ^2.4.5
+  drift: ^2.16.0
+  sqlite3_flutter_libs: ^0.5.20
+  path_provider: ^2.1.2
+  path: ^1.9.0
+  image_picker: ^1.0.7                # Để chụp ảnh hoặc chọn từ thư viện
+  google_mlkit_text_recognition: ^0.13.0 # Để đọc chữ từ ảnh
+  google_mlkit_translation: ^0.11.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # The "flutter_lints" package below contains a set of recommended lints to
+  # encourage good coding practices. The lint set provided by the package is
+  # activated in the `analysis_options.yaml` file located at the root of your
+  # package. See that file for information about deactivating specific lint
+  # rules and activating additional ones.
+  flutter_lints: ^5.0.0
+  drift_dev: ^2.16.0
+  build_runner: ^2.4.8
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter packages.
+flutter:
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+  assets:
+    - shorebird.yaml
+  # To add assets to your application, add an assets section, like this:
+  # assets:
+  #   - images/a_dot_burr.jpeg
+  #   - images/a_dot_ham.jpeg
+
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/to/resolution-aware-images
+
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.dev/to/asset-from-package
+
+  # To add custom fonts to your application, add a fonts section here,
+  # in this "flutter" section. Each entry in this list should have a
+  # "family" key with the font family name, and a "fonts" key with a
+  # list giving the asset and other descriptors for the font. For
+  # example:
+  # fonts:
+  #   - family: Schyler
+  #     fonts:
+  #       - asset: fonts/Schyler-Regular.ttf
+  #       - asset: fonts/Schyler-Italic.ttf
+  #         style: italic
+  #   - family: Trajan Pro
+  #     fonts:
+  #       - asset: fonts/TrajanPro.ttf
+  #       - asset: fonts/TrajanPro_Bold.ttf
+  #         weight: 700
+  #
+  # For details regarding fonts from package dependencies,
+  # see https://flutter.dev/to/font-from-package
+</file>
+
+<file path="lib/features/features.txt">
+1️⃣ Mình chỉ bạn Delete (long press)
+2️⃣ Gắn Category dropdown cho vocabulary
+3️⃣ Refactor lại list cho search
+
+2️⃣ Thêm search + filter vocabulary
+3️⃣ Chuẩn bị copy feature này sang Grammar / Kanji
+
+1️⃣ ⭐ Favorite vocabulary
+2️⃣ 📊 Learned / Progress
+3️⃣ 🔁 Random quiz
+4️⃣ 🧠 SRS (ôn tập thông minh)
+
+2️⃣ 📊 Learned / Progress
+    1️⃣ Progress bar (JLPT style)
+    2️⃣ Filter Learned / Unlearned
+    3️⃣ Sort A–Z / Favorite first
+    4️⃣ Quiz từ vocab đã learned
+
+3️⃣ 🔁 Random Quiz / Test
+    1️⃣ Quiz theo Category / JLPT
+    2️⃣ Ghi điểm + streak
+    3️⃣ Sai thì auto set learned = false
+    4️⃣ Flashcard (lật thẻ)
+    5️⃣ Grammar / Kanji quiz dùng lại y chang
+    
+4️⃣ 🧠 SRS – ôn tập thông minh
+
+
+Auth
+    1️⃣ Login email + Google (Flutter + Supabase)
+        1️⃣ Ẩn / hiện CRUD theo role (admin / learner)
+        2️⃣ Gắn learned + favorite theo user (cực quan trọng)
+        3️⃣ Bật RLS an toàn
+        4️⃣ Sync progress đa thiết bị
+        4️⃣ Multi-device sync
+    2️⃣ Gắn progress vào user (refactor learned/favorite)
+    3️⃣ Admin / Learner UI khác nhau
+    4️⃣ Offline-first (local cache)
+
+local
+1️⃣ Tách learned/favorite: guest vs user
+2️⃣ Local cache cho guest (Hive / SharedPreferences)
+        🔹 Cách A – SharedPreferences (KHUYÊN DÙNG BÂY GIỜ)
+        ✔ Dễ
+        ✔ Nhẹ
+        ✔ Phù hợp learned / favorite / progress
+        ❌ Không phù hợp data lớn
+
+        👉 Dùng cho guest mode (chuẩn)
+
+        🔹 Cách B – SQLite / Drift / Floor
+
+        ✔ Data lớn
+        ✔ Query mạnh
+        ❌ Code nhiều
+        ❌ Dễ ngợp lúc đầu
+
+        👉 Dùng khi:
+
+        Offline full vocab
+
+        Từ điển lớn
+
+        🔹 Cách C – Hive / Isar
+
+        ✔ Nhanh
+        ✔ NoSQL
+        ✔ App lớn
+
+        👉 Dùng sau này
+3️⃣ Sync local → cloud khi login
+4️⃣ RLS theo user
+
+
+Import excel dữ liệu
+</file>
+
+<file path="lib/features/vocabulary/data/repositories/vocabulary_repository.dart">
+// lib/features/vocabulary/data/repositories/vocabulary_repository.dart
+
+import '../datasources/vocabulary_remote_datasource.dart';
+import '../datasources/vocabulary_local_datasource.dart';
+import 'package:flutter/foundation.dart';
+import '../models/vocabulary_model.dart';
+import '../models/vocabulary.dart';
+import '../../../../core/ultis/auth_helper.dart';
+
+class VocabularyRepository {
+  final VocabularyRemoteDatasource remoteDatasource;
+  final VocabularyLocalDatasource localDatasource = VocabularyLocalDatasource();
+
+  VocabularyRepository(this.remoteDatasource);
+
+  Future<List<Vocabulary>> getAll() async {
+    try {
+      // 1. Lấy data từ Server (Supabase)
+      final remoteData = await remoteDatasource.getAll();
+
+      // 2. Cache vào Local DB (CHỈ LÀM KHI KHÔNG PHẢI WEB)
+      // Thêm điều kiện !kIsWeb để chặn lỗi sql.js trên trình duyệt
+      if (!kIsWeb && !AuthHelper.isGuest) {
+        try {
+          await localDatasource.cacheData(remoteData);
+        } catch (e) {
+          print("Lỗi cache local (không ảnh hưởng hiển thị): $e");
+        }
+      }
+
+      // 3. Trả về data
+      return _mapToEntity(remoteData);
+    } catch (e) {
+      /// 4. Nếu lỗi mạng/offline -> Lấy từ Local DB (Chỉ áp dụng cho Mobile)
+      if (!kIsWeb) {
+        print('Offline mode: $e');
+        final localData = await localDatasource.getAll();
+        return _mapToEntity(localData);
+      } else {
+        // Nếu là Web mà lỗi mạng thì chịu, ném lỗi ra để UI hiện thông báo
+        rethrow;
+      }
+    }
+  }
+
+  List<Vocabulary> _mapToEntity(List<VocabularyModel> models) {
+    return models.map((e) => e.toEntity()).toList();
+  }
+
+  Future<void> add(VocabularyModel vocab) {
+    return remoteDatasource.insert(vocab);
+  }
+
+  Future<void> update(int id, VocabularyModel vocab) {
+    return remoteDatasource.update(id, vocab);
+  }
+
+  Future<void> delete(int id) {
+    return remoteDatasource.delete(id);
+  }
+
+  // Toggle Favorite: Cập nhật Server -> Sau đó cập nhật Local (để UI phản hồi nhanh mà ko cần load lại hết)
+  Future<void> toggleFavorite(int id, bool value) async {
+    // 1. Gửi lên server
+    await remoteDatasource.updateFavorite(id, value);
+
+    // 2. (Optional) Cập nhật nhanh vào local DB nếu muốn UI update tức thì khi offline
+    // Hiện tại UI đang reload lại list nên chưa cần thiết phải update local lẻ tẻ ở đây.
+  }
+
+  Future<void> toggleLearned(int id, bool value) async {
+    await remoteDatasource.updateLearned(id, value);
+  }
+}
+</file>
+
+<file path="lib/features/vocabulary/presentation/pages/vocabulary_list_page.dart">
+// lib/features/vocabulary/presentation/pages/vocabulary_list_page.dart
+
+import 'package:flutter/material.dart';
+import 'package:nihongo_app/core/ultis/auth_helper.dart';
+import 'package:nihongo_app/features/auth/presentation/login_page.dart';
+import 'package:nihongo_app/features/vocabulary/data/datasources/category_remote_datasource.dart';
+import 'package:nihongo_app/features/vocabulary/data/datasources/vocabulary_remote_datasource.dart';
+import 'package:nihongo_app/features/vocabulary/data/models/category_model.dart';
+import 'package:nihongo_app/features/vocabulary/data/models/vocabulary.dart';
+import 'package:nihongo_app/features/vocabulary/data/repositories/vocabulary_repository.dart';
+import 'package:nihongo_app/features/vocabulary/presentation/pages/photo_translate_page.dart';
+import 'package:nihongo_app/features/vocabulary/presentation/pages/vocabulary_form_page.dart';
+import 'package:nihongo_app/features/vocabulary/presentation/pages/vocabulary_quiz_page.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class VocabularyListPage extends StatefulWidget {
+  const VocabularyListPage({super.key});
+
+  @override
+  State<VocabularyListPage> createState() => _VocabularyListPageState();
+}
+
+class _VocabularyListPageState extends State<VocabularyListPage> {
+  late final VocabularyRepository repository;
+
+  // Data States
+  List<Vocabulary> allList = [];
+  List<Vocabulary> filteredList = [];
+  List<CategoryModel> categories = [];
+
+  // UI States
+  bool isLoading = true;
+  int? selectedCategoryId;
+  String searchText = '';
+  String filterType = 'all'; // 'all', 'unlearned', 'learned', 'favorite'
+
+  @override
+  void initState() {
+    super.initState();
+    repository = VocabularyRepository(VocabularyRemoteDatasource());
+    _loadCategories();
+    _loadVocabulary();
+  }
+
+  Future<void> _loadCategories() async {
+    final result = await CategoryRemoteDatasource().getVocabularyCategories();
+    setState(() {
+      categories = result;
+    });
+  }
+
+  Future<void> _loadVocabulary() async {
+    setState(() => isLoading = true);
+
+    try {
+      // Gọi repository
+      final data = await repository.getAll();
+
+      if (mounted) {
+        setState(() {
+          allList = data;
+          _applyFilter();
+        });
+      }
+    } catch (e) {
+      // Nếu có lỗi, in ra log và thông báo cho user biết thay vì treo app
+      print("Lỗi tải dữ liệu: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi tải dữ liệu: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      // QUAN TRỌNG: Luôn tắt loading dù thành công hay thất bại
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
+  }
+
+  // Tính toán tiến độ học tập
+  double get _progress {
+    if (allList.isEmpty) return 0.0;
+    final learnedCount = allList.where((v) => v.isLearned).length;
+    return learnedCount / allList.length;
+  }
+
+  void _showLoginHint() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Vui lòng đăng nhập để lưu tiến độ học!'),
+        action: SnackBarAction(
+          label: 'Đăng nhập',
+          onPressed:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginPage()),
+              ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = AuthHelper.currentUser;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Từ vựng JLPT'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.document_scanner), // Icon máy quét
+            tooltip: 'Dịch hình ảnh',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PhotoTranslatePage()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.quiz),
+            tooltip: 'Ôn tập',
+            onPressed: () {
+              // Logic Quiz: Chỉ lấy những từ chưa thuộc hoặc yêu thích để ôn
+              final quizList =
+                  allList.where((v) => !v.isLearned || v.isFavorite).toList();
+
+              if (quizList.length < 4) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Cần ít nhất 4 từ để bắt đầu Quiz!'),
+                  ),
+                );
+                return;
+              }
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => VocabularyQuizPage(vocabList: quizList),
+                ),
+              );
+            },
+          ),
+          if (user == null)
+            IconButton(
+              icon: const Icon(Icons.login),
+              tooltip: 'Đăng nhập',
+              onPressed: () async {
+                // SỬA Ở ĐÂY:
+                // Chờ kết quả trả về từ LoginPage
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                );
+
+                // Nếu result == true (đăng nhập thành công), reload lại list
+                if (result == true) {
+                  _loadVocabulary();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Đã đăng nhập và đồng bộ dữ liệu!'),
+                    ),
+                  );
+                }
+              },
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Đăng xuất',
+              onPressed: () async {
+                await Supabase.instance.client.auth.signOut();
+                if (mounted) {
+                  _loadVocabulary(); // Reload lại data về trạng thái Guest
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Đã đăng xuất')));
+                }
+              },
+            ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // 1. THANH TIẾN ĐỘ & THỐNG KÊ
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Tiến độ: ${(_progress * 100).toStringAsFixed(1)}%',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      '${allList.where((v) => v.isLearned).length}/${allList.length} từ',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                LinearProgressIndicator(
+                  value: _progress,
+                  minHeight: 8,
+                  borderRadius: BorderRadius.circular(4),
+                  backgroundColor: Colors.white,
+                  color: Colors.green,
+                ),
+              ],
+            ),
+          ),
+
+          // 2. BỘ LỌC & TÌM KIẾM
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        decoration: const InputDecoration(
+                          prefixIcon: Icon(Icons.search),
+                          hintText: 'Tìm Kanji, Hiragana, Nghĩa...',
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 0,
+                            horizontal: 10,
+                          ),
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (value) {
+                          searchText = value;
+                          _applyFilter();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Dropdown Category rút gọn
+                    DropdownButton<int>(
+                      value: selectedCategoryId,
+                      hint: const Text('Chủ đề'),
+                      underline: Container(), // Bỏ gạch chân mặc định
+                      icon: const Icon(Icons.filter_list),
+                      items: [
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Text('Tất cả chủ đề'),
+                        ),
+                        ...categories.map(
+                          (c) => DropdownMenuItem(
+                            value: c.id,
+                            child: Text(c.title),
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          selectedCategoryId = value;
+                          _applyFilter();
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                // Filter Chips (Tab lọc trạng thái)
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildFilterChip('all', 'Tất cả'),
+                      _buildFilterChip('unlearned', 'Chưa học'),
+                      _buildFilterChip('learned', 'Đã thuộc'),
+                      _buildFilterChip('favorite', 'Đánh dấu ⭐'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 3. DANH SÁCH TỪ VỰNG
+          Expanded(
+            child:
+                isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : filteredList.isEmpty
+                    ? const Center(
+                      child: Text(
+                        'Không tìm thấy từ vựng nào.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
+                    : ListView.separated(
+                      padding: const EdgeInsets.only(bottom: 80),
+                      itemCount: filteredList.length,
+                      separatorBuilder: (c, i) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final v = filteredList[index];
+                        return _buildVocabularyItem(v);
+                      },
+                    ),
+          ),
+        ],
+      ),
+
+      // Nút thêm từ (Chỉ hiện nếu Admin hoặc User thích thêm private note - tùy logic sau này)
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          if (AuthHelper.isGuest) {
+            _showLoginHint();
+            return;
+          }
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const VocabularyFormPage()),
+          );
+          if (result == true) _loadVocabulary();
+        },
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  // Widget con: Filter Chip
+  Widget _buildFilterChip(String type, String label) {
+    final isSelected = filterType == type;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: isSelected,
+        onSelected: (selected) {
+          if (selected) {
+            setState(() {
+              filterType = type;
+              _applyFilter();
+            });
+          }
+        },
+      ),
+    );
+  }
+
+  // Widget con: Dòng từ vựng
+  Widget _buildVocabularyItem(Vocabulary v) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      tileColor:
+          v.isLearned
+              ? Colors.green.withValues(alpha: 0.1)
+              : null, // Highlight nhẹ nếu đã thuộc
+      leading: IconButton(
+        icon: Icon(
+          v.isLearned ? Icons.check_circle : Icons.circle_outlined,
+          color: v.isLearned ? Colors.green : Colors.grey,
+          size: 28,
+        ),
+        onPressed: () async {
+          if (AuthHelper.isGuest) {
+            _showLoginHint();
+            return;
+          }
+          // Optimistic UI Update: Cập nhật UI trước khi gọi API để app mượt hơn
+          setState(() {
+            // Tìm và sửa trực tiếp trong allList để ko cần reload lại API
+            final index = allList.indexWhere((item) => item.id == v.id);
+            if (index != -1) {
+              allList[index] = Vocabulary(
+                id: v.id,
+                categoryId: v.categoryId,
+                kanji: v.kanji,
+                hiragana: v.hiragana,
+                romaji: v.romaji,
+                meaningVn: v.meaningVn,
+                meaningEn: v.meaningEn,
+                isFavorite: v.isFavorite,
+                isLearned: !v.isLearned, // Toggle
+              );
+              _applyFilter(); // Filter lại list hiển thị
+            }
+          });
+
+          // Gọi API ngầm bên dưới
+          await repository.toggleLearned(v.id, !v.isLearned);
+        },
+      ),
+      title: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Text(
+            v.kanji.isNotEmpty ? v.kanji : v.hiragana,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          if (v.kanji.isNotEmpty) ...[
+            const SizedBox(width: 8),
+            Text('(${v.hiragana})', style: const TextStyle(color: Colors.grey)),
+          ],
+        ],
+      ),
+      subtitle: Text(
+        '${v.meaningVn} / ${v.meaningEn}',
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: IconButton(
+        icon: Icon(
+          v.isFavorite ? Icons.star : Icons.star_border,
+          color: v.isFavorite ? Colors.amber : Colors.grey,
+        ),
+        onPressed: () async {
+          if (AuthHelper.isGuest) {
+            _showLoginHint();
+            return;
+          }
+          setState(() {
+            final index = allList.indexWhere((item) => item.id == v.id);
+            if (index != -1) {
+              allList[index] = Vocabulary(
+                id: v.id,
+                categoryId: v.categoryId,
+                kanji: v.kanji,
+                hiragana: v.hiragana,
+                romaji: v.romaji,
+                meaningVn: v.meaningVn,
+                meaningEn: v.meaningEn,
+                isFavorite: !v.isFavorite, // Toggle
+                isLearned: v.isLearned,
+              );
+              _applyFilter();
+            }
+          });
+          await repository.toggleFavorite(v.id, !v.isFavorite);
+        },
+      ),
+      onTap: () {
+        // Mở chi tiết (Sẽ làm sau)
+      },
+    );
+  }
+
+  void _applyFilter() {
+    filteredList =
+        allList.where((v) {
+          // 1. Lọc theo Category
+          final matchCategory =
+              selectedCategoryId == null || v.categoryId == selectedCategoryId;
+
+          // 2. Lọc theo Search Text
+          final text = searchText.toLowerCase();
+          final matchSearch =
+              text.isEmpty ||
+              v.kanji.toLowerCase().contains(text) ||
+              v.hiragana.toLowerCase().contains(text) ||
+              v.meaningVn.toLowerCase().contains(text) ||
+              v.meaningEn.toLowerCase().contains(text);
+
+          // 3. Lọc theo Status Tab
+          bool matchStatus = true;
+          if (filterType == 'learned') matchStatus = v.isLearned;
+          if (filterType == 'unlearned') matchStatus = !v.isLearned;
+          if (filterType == 'favorite') matchStatus = v.isFavorite;
+
+          return matchCategory && matchSearch && matchStatus;
+        }).toList();
+  }
+}
+</file>
+
+</files>
